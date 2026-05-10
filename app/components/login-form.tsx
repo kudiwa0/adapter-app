@@ -25,10 +25,6 @@ export function LoginForm() {
       nextErrors.username = "Username is required.";
     }
 
-    if (!password) {
-      nextErrors.password = "Password is required.";
-    }
-
     setErrors(nextErrors);
     setFormError("");
 

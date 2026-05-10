@@ -15,7 +15,7 @@ import {
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, useSyncExternalStore } from "react";
-import { clearSession, getStoredSession } from "../lib/auth";
+import { clearSession, getStoredSession, subscribeToSessionStore } from "../lib/auth";
 import { logout } from "../lib/api";
 import { Button } from "./ui";
 
@@ -32,7 +32,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const session = useSyncExternalStore(
-    subscribeToSession,
+    subscribeToSessionStore,
     getStoredSession,
     () => null,
   );
@@ -137,14 +137,6 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       ) : null}
     </div>
   );
-}
-
-function subscribeToSession(onStoreChange: () => void) {
-  window.addEventListener("storage", onStoreChange);
-
-  return () => {
-    window.removeEventListener("storage", onStoreChange);
-  };
 }
 
 function ShellBrand() {
