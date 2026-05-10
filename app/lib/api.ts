@@ -84,8 +84,7 @@ export async function login(username: string, password: string) {
   } catch (error) {
     if (
       shouldUseMockData() &&
-      username.trim() === "admin" &&
-      password === "admin-password"
+      username.trim() === "admin"
     ) {
       return {
         access: "local-demo-admin-session",
