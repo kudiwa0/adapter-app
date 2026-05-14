@@ -3,9 +3,9 @@
 import { AlertTriangle, CheckCircle2, Gauge, Inbox } from "lucide-react";
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
-import { getFailedRecords, getLogs, getMetrics } from "../lib/api";
+import { getFailedRecords, getMetrics } from "../lib/api";
 import { formatDateTime, formatNumber, formatPercent } from "../lib/format";
-import type { DashboardMetrics, FailedRecord, ProcessingLog } from "../lib/types";
+import type { DashboardMetrics, FailedRecord } from "../lib/types";
 import {
   EmptyState,
   ErrorBanner,
@@ -17,7 +17,6 @@ import {
 
 export function DashboardView() {
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
-  const [logs, setLogs] = useState<ProcessingLog[]>([]);
   const [failedRecords, setFailedRecords] = useState<FailedRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -30,9 +29,8 @@ export function DashboardView() {
       setError("");
 
       try {
-        const [nextMetrics, nextLogs, nextFailedRecords] = await Promise.all([
+        const [nextMetrics, nextFailedRecords] = await Promise.all([
           getMetrics(),
-          getLogs(),
           getFailedRecords(),
         ]);
 
@@ -41,7 +39,6 @@ export function DashboardView() {
         }
 
         setMetrics(nextMetrics);
-        setLogs(nextLogs.slice(0, 5));
         setFailedRecords(nextFailedRecords.slice(0, 5));
       } catch {
         if (active) {
@@ -100,13 +97,6 @@ export function DashboardView() {
 
       <div className="grid gap-6 xl:grid-cols-2">
         <Panel
-          description="Most recent records that completed the adapter pipeline."
-          title="Recent successful logs"
-        >
-          {loading ? <LoadingRows /> : <RecentLogs logs={logs} />}
-        </Panel>
-
-        <Panel
           description="Latest failed records requiring review or manual resolution."
           title="Recent failed records"
         >
@@ -143,50 +133,6 @@ function MetricTile({
           {value}
         </p>
       )}
-    </div>
-  );
-}
-
-function RecentLogs({ logs }: { logs: ProcessingLog[] }) {
-  if (logs.length === 0) {
-    return (
-      <EmptyState
-        description="Successful processing activity will appear here."
-        title="No logs yet"
-      />
-    );
-  }
-
-  return (
-    <div className="overflow-x-auto">
-      <table className="w-full min-w-[620px] text-left text-sm">
-        <thead className="text-xs uppercase tracking-[0.12em] text-[#637166]">
-          <tr>
-            <th className="py-2 pr-4">Institution</th>
-            <th className="py-2 pr-4">Format</th>
-            <th className="py-2 pr-4">Golden ID</th>
-            <th className="py-2">Created</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-[#e3e9e3]">
-          {logs.map((log) => (
-            <tr key={log.id}>
-              <td className="py-3 pr-4 font-medium text-[#17201b]">
-                {log.institution_name}
-              </td>
-              <td className="py-3 pr-4">
-                <StatusBadge tone="neutral">{log.format_received}</StatusBadge>
-              </td>
-              <td className="py-3 pr-4 font-mono text-[#435246]">
-                {log.golden_record_id}
-              </td>
-              <td className="py-3 text-[#637166]">
-                {formatDateTime(log.created_at)}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
     </div>
   );
 }
