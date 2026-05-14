@@ -143,7 +143,7 @@ export function InstitutionsView() {
         title="Manage source systems"
       />
 
-      <div className="grid gap-6 xl:grid-cols-[420px_1fr]">
+      <div className="grid gap-6">
         <div className="grid content-start gap-6">
           <Panel
             description="The generated API key is shown once after creation."
@@ -214,7 +214,7 @@ export function InstitutionsView() {
               />
             </label>
           }
-          description="API keys are hidden after creation and never displayed in the list."
+          description="API keys are only returned once after institution creation and are not shown in this list."
           title="Institution list"
         >
           {loading ? (
@@ -226,7 +226,7 @@ export function InstitutionsView() {
             />
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[700px] text-left text-sm">
+              <table className="w-full min-w-[620px] text-left text-sm">
                 <thead className="text-xs uppercase tracking-[0.12em] text-[#637166]">
                   <tr>
                     <th className="py-2 pr-4">Name</th>
