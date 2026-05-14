@@ -71,6 +71,7 @@ export function FailedRecordsView() {
         record.failure_stage,
         record.error_code,
         record.message,
+        JSON.stringify(record.error_details ?? ""),
       ]
         .join(" ")
         .toLowerCase()
@@ -215,6 +216,12 @@ export function FailedRecordsView() {
                   {selected.message}
                 </p>
               </div>
+
+              {selected.error_details ? (
+                <pre className="max-h-52 overflow-auto rounded-md border border-[#f0d6a8] bg-[#fff8ec] p-4 text-xs leading-6 text-[#6b3c0f]">
+                  {JSON.stringify(selected.error_details, null, 2)}
+                </pre>
+              ) : null}
 
               <pre className="max-h-80 overflow-auto rounded-md border border-[#d8e1d8] bg-[#102018] p-4 text-xs leading-6 text-[#d6f3de]">
                 {JSON.stringify(selected.raw_payload, null, 2)}
