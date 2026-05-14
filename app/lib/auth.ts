@@ -70,14 +70,6 @@ export function subscribeToSessionStore(callback: () => void) {
   };
 }
 
-export function authHeaders() {
-  const session = readSession();
-
-  if (!session?.access) {
-    return {};
-  }
-
-  return {
-    Authorization: `Bearer ${session.access}`,
-  };
+export function authHeaders(): Record<string, string> {
+  return {};
 }
