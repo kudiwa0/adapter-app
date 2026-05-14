@@ -6,10 +6,8 @@ import {
   BarChart3,
   Building2,
   ClipboardList,
-  FileClock,
   LogOut,
   Menu,
-  UserRoundPlus,
   X,
 } from "lucide-react";
 import Link from "next/link";
@@ -21,16 +19,14 @@ import { Button } from "./ui";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: BarChart3 },
-  { href: "/patients/new", label: "Register Patient", icon: UserRoundPlus },
-  { href: "/institutions", label: "Institutions", icon: Building2 },
+  { href: "/institutions", label: "Register Institution", icon: Building2 },
   { href: "/failed-records", label: "Failed Records", icon: AlertTriangle },
-  { href: "/logs", label: "Logs", icon: FileClock },
 ];
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const session = useSyncExternalStore(
     subscribeToSessionStore,
     getStoredSession,
@@ -64,20 +60,44 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen lg:grid lg:grid-cols-[280px_1fr]">
-      <aside className="hidden border-r border-[#d8e1d8] bg-[#fbfcfa]/95 px-4 py-5 lg:block">
-        <ShellBrand />
+    <div className="min-h-screen flex">
+      {/* Fixed Sidebar */}
+      <aside
+        className={`fixed left-0 top-0 h-screen w-80 border-r border-[#d8e1d8] bg-[#fbfcfa]/95 px-4 py-5 transition-transform duration-300 ease-in-out z-30 ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        <div className="mb-4 flex items-center justify-between">
+          <ShellBrand />
+          <button
+            aria-label="Close sidebar"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-[#cbd8cc] bg-white text-[#435246] lg:hidden"
+            onClick={() => setSidebarOpen(false)}
+            title="Close sidebar"
+            type="button"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
         <ShellNav pathname={pathname} />
       </aside>
 
-      <div className="min-w-0">
+      {/* Sidebar overlay for mobile */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-20 bg-[#17201b]/35 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      <div className={`flex-1 flex flex-col ${sidebarOpen ? "lg:ml-80" : ""}`}>
         <header className="sticky top-0 z-20 border-b border-[#d8e1d8] bg-[#fbfcfa]/90 backdrop-blur">
           <div className="flex min-h-16 items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
             <button
-              aria-label="Open navigation"
-              className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-[#cbd8cc] bg-white text-[#435246] lg:hidden"
-              onClick={() => setMenuOpen(true)}
-              title="Open navigation"
+              aria-label="Toggle sidebar"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-[#cbd8cc] bg-white text-[#435246]"
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              title="Toggle sidebar"
               type="button"
             >
               <Menu className="h-5 w-5" />
@@ -109,32 +129,6 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           {children}
         </main>
       </div>
-
-      {menuOpen ? (
-        <div className="fixed inset-0 z-40 lg:hidden">
-          <button
-            aria-label="Close navigation overlay"
-            className="absolute inset-0 bg-[#17201b]/35"
-            onClick={() => setMenuOpen(false)}
-            type="button"
-          />
-          <div className="relative z-10 h-full w-[min(86vw,320px)] border-r border-[#d8e1d8] bg-[#fbfcfa] p-4 shadow-2xl">
-            <div className="mb-4 flex items-center justify-between">
-              <ShellBrand />
-              <button
-                aria-label="Close navigation"
-                className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-[#cbd8cc] bg-white text-[#435246]"
-                onClick={() => setMenuOpen(false)}
-                title="Close navigation"
-                type="button"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-            <ShellNav onNavigate={() => setMenuOpen(false)} pathname={pathname} />
-          </div>
-        </div>
-      ) : null}
     </div>
   );
 }
@@ -155,10 +149,8 @@ function ShellBrand() {
 
 function ShellNav({
   pathname,
-  onNavigate,
 }: {
   pathname: string;
-  onNavigate?: () => void;
 }) {
   return (
     <nav className="grid gap-1">
@@ -175,7 +167,6 @@ function ShellNav({
             }`}
             href={item.href}
             key={item.href}
-            onClick={onNavigate}
           >
             <Icon className="h-4 w-4" />
             {item.label}
