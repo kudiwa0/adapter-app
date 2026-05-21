@@ -1,6 +1,16 @@
 "use client";
 
-import { Activity, Copy, KeyRound, Plus, RotateCcw, Search } from "lucide-react";
+import {
+  Activity,
+  CheckCircle2,
+  Copy,
+  Eye,
+  EyeOff,
+  KeyRound,
+  Plus,
+  RotateCcw,
+  Search,
+} from "lucide-react";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import {
   createInstitution,
@@ -21,6 +31,27 @@ import {
   StatusBadge,
 } from "./ui";
 
+const API_KEYS_STORAGE_KEY = "adapter-institution-api-keys";
+
+function readStoredApiKeys() {
+  if (typeof window === "undefined") {
+    return {};
+  }
+
+  const stored = window.localStorage.getItem(API_KEYS_STORAGE_KEY);
+
+  if (!stored) {
+    return {};
+  }
+
+  try {
+    return JSON.parse(stored) as Record<number, string>;
+  } catch {
+    window.localStorage.removeItem(API_KEYS_STORAGE_KEY);
+    return {};
+  }
+}
+
 export function InstitutionsView() {
   const [institutions, setInstitutions] = useState<Institution[]>([]);
   const [query, setQuery] = useState("");
@@ -31,6 +62,19 @@ export function InstitutionsView() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [fieldError, setFieldError] = useState("");
+  const [apiKeys, setApiKeys] = useState<Record<number, string>>(readStoredApiKeys);
+  const [visibleKeys, setVisibleKeys] = useState<Record<number, boolean>>({});
+  const [copyNotice, setCopyNotice] = useState("");
+
+  useEffect(() => {
+    if (!copyNotice) {
+      return;
+    }
+
+    const timeout = window.setTimeout(() => setCopyNotice(""), 2400);
+
+    return () => window.clearTimeout(timeout);
+  }, [copyNotice]);
 
   useEffect(() => {
     let mounted = true;
@@ -94,6 +138,7 @@ export function InstitutionsView() {
       });
 
       setCreated(result);
+      rememberApiKey(result.id, result.api_key);
       const institution: Institution = {
         id: result.id,
         name: result.name,
@@ -127,23 +172,42 @@ export function InstitutionsView() {
     );
   }
 
-  async function copyKey() {
-    if (!created?.api_key) {
-      return;
-    }
+  function rememberApiKey(id: number, apiKey: string) {
+    setApiKeys((current) => {
+      const next = { ...current, [id]: apiKey };
+      window.localStorage.setItem(API_KEYS_STORAGE_KEY, JSON.stringify(next));
+      return next;
+    });
+  }
 
-    await navigator.clipboard.writeText(created.api_key);
+  async function copyKey(apiKey: string, label = "API key copied") {
+    await navigator.clipboard.writeText(apiKey);
+    setCopyNotice(label);
   }
 
   return (
     <>
+      {copyNotice ? (
+        <div className="fixed right-4 top-4 z-50 max-w-sm rounded-lg border border-[#bfe6d5] bg-white px-4 py-3 shadow-[0_18px_60px_rgba(23,32,27,0.18)]">
+          <div className="flex items-center gap-3">
+            <span className="grid h-9 w-9 place-items-center rounded-md bg-[#e9f8f1] text-[#13795b]">
+              <CheckCircle2 className="h-5 w-5" />
+            </span>
+            <div>
+              <p className="text-sm font-semibold text-[#17201b]">{copyNotice}</p>
+              <p className="text-xs text-[#637166]">Ready to share securely.</p>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       <PageHeader
         description="Register data-sending institutions, track their access state, and reveal newly generated API keys only once."
         eyebrow="Institutions"
         title="Manage source systems"
       />
 
-      <div className="grid gap-6 xl:grid-cols-[420px_1fr]">
+      <div className="grid gap-6">
         <div className="grid content-start gap-6">
           <Panel
             description="The generated API key is shown once after creation."
@@ -188,12 +252,21 @@ export function InstitutionsView() {
                     <p className="text-sm font-semibold text-[#17201b]">
                       {created.name}
                     </p>
-                    <p className="mt-2 break-all font-mono text-sm text-[#1f4d39]">
+                    <button
+                      className="mt-2 block break-all text-left font-mono text-sm text-[#1f4d39] underline decoration-[#9ecfba] decoration-dotted underline-offset-4 transition hover:text-[#13795b]"
+                      onClick={() => copyKey(created.api_key)}
+                      title="Copy API key"
+                      type="button"
+                    >
                       {created.api_key}
-                    </p>
+                    </button>
                   </div>
                 </div>
-                <Button onClick={copyKey} type="button" variant="secondary">
+                <Button
+                  onClick={() => copyKey(created.api_key)}
+                  type="button"
+                  variant="secondary"
+                >
                   <Copy className="h-4 w-4" />
                   Copy key
                 </Button>
@@ -214,7 +287,7 @@ export function InstitutionsView() {
               />
             </label>
           }
-          description="API keys are hidden after creation and never displayed in the list."
+          description="Keys are available here only after this frontend has generated them from the live API."
           title="Institution list"
         >
           {loading ? (
@@ -226,44 +299,103 @@ export function InstitutionsView() {
             />
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[700px] text-left text-sm">
+              <table className="w-full min-w-[860px] text-left text-sm">
                 <thead className="text-xs uppercase tracking-[0.12em] text-[#637166]">
                   <tr>
                     <th className="py-2 pr-4">Name</th>
+                    <th className="py-2 pr-4">API Key</th>
                     <th className="py-2 pr-4">Status</th>
                     <th className="py-2 pr-4">Created</th>
                     <th className="py-2 text-right">Action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#e3e9e3]">
-                  {filtered.map((institution) => (
-                    <tr key={institution.id}>
-                      <td className="py-3 pr-4 font-medium text-[#17201b]">
-                        {institution.name}
-                      </td>
-                      <td className="py-3 pr-4">
-                        <StatusBadge
-                          tone={institution.is_active ? "success" : "neutral"}
-                        >
-                          {institution.is_active ? "Active" : "Revoked"}
-                        </StatusBadge>
-                      </td>
-                      <td className="py-3 pr-4 text-[#637166]">
-                        {formatDateTime(institution.created_at)}
-                      </td>
-                      <td className="py-3 text-right">
-                        <Button
-                          disabled={!institution.is_active}
-                          onClick={() => onRevoke(institution)}
-                          type="button"
-                          variant="secondary"
-                        >
-                          <RotateCcw className="h-4 w-4" />
-                          Revoke
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
+                  {filtered.map((institution) => {
+                    const apiKey = apiKeys[institution.id] || institution.api_key;
+                    const isVisible = Boolean(visibleKeys[institution.id]);
+
+                    return (
+                      <tr key={institution.id}>
+                        <td className="py-3 pr-4 font-medium text-[#17201b]">
+                          {institution.name}
+                        </td>
+                        <td className="py-3 pr-4">
+                          <div className="flex items-center gap-1.5">
+                            <input
+                              aria-label={`API key for ${institution.name}`}
+                              className="h-9 w-64 rounded-md border border-[#d8e1d8] bg-[#f8faf7] px-2 font-mono text-xs text-[#1f4d39] shadow-sm"
+                              readOnly
+                              title={
+                                apiKey
+                                  ? "Institution API key"
+                                  : "This API key is only available immediately after creation."
+                              }
+                              type={apiKey && isVisible ? "text" : "password"}
+                              value={apiKey || "api-key-not-available"}
+                            />
+                            <button
+                              aria-label={isVisible ? "Hide API key" : "Show API key"}
+                              className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-transparent text-[#637166] transition hover:bg-[#edf2ed] hover:text-[#17201b] disabled:cursor-not-allowed disabled:opacity-45"
+                              disabled={!apiKey}
+                              onClick={() =>
+                                setVisibleKeys((current) => ({
+                                  ...current,
+                                  [institution.id]: !current[institution.id],
+                                }))
+                              }
+                              title={isVisible ? "Hide API key" : "Show API key"}
+                              type="button"
+                            >
+                              {isVisible ? (
+                                <EyeOff className="h-4 w-4" />
+                              ) : (
+                                <Eye className="h-4 w-4" />
+                              )}
+                            </button>
+                            <button
+                              aria-label="Copy API key"
+                              className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-transparent text-[#637166] transition hover:bg-[#edf2ed] hover:text-[#17201b] disabled:cursor-not-allowed disabled:opacity-45"
+                              disabled={!apiKey}
+                              onClick={() =>
+                                apiKey
+                                  ? copyKey(`${apiKey}`, `${institution.name} API key copied`)
+                                  : undefined
+                              }
+                              title={
+                                apiKey
+                                  ? "Copy API key"
+                                  : "This API key is only available immediately after creation."
+                              }
+                              type="button"
+                            >
+                              <Copy className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </td>
+                        <td className="py-3 pr-4">
+                          <StatusBadge
+                            tone={institution.is_active ? "success" : "neutral"}
+                          >
+                            {institution.is_active ? "Active" : "Revoked"}
+                          </StatusBadge>
+                        </td>
+                        <td className="py-3 pr-4 text-[#637166]">
+                          {formatDateTime(institution.created_at)}
+                        </td>
+                        <td className="py-3 text-right">
+                          <Button
+                            disabled={!institution.is_active}
+                            onClick={() => onRevoke(institution)}
+                            type="button"
+                            variant="secondary"
+                          >
+                            <RotateCcw className="h-4 w-4" />
+                            Revoke
+                          </Button>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

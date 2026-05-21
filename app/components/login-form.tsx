@@ -25,6 +25,10 @@ export function LoginForm() {
       nextErrors.username = "Username is required.";
     }
 
+    if (!password) {
+      nextErrors.password = "Password is required.";
+    }
+
     setErrors(nextErrors);
     setFormError("");
 
@@ -59,8 +63,8 @@ export function LoginForm() {
             Sign in to operations
           </h1>
           <p className="mt-2 text-sm leading-6 text-[#637166]">
-            Use your admin credentials to manage institutions, records, logs,
-            and manual patient submissions.
+            Use your admin credentials to manage institutions, dashboard
+            metrics, and failed records.
           </p>
         </div>
 

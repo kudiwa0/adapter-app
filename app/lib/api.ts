@@ -1,25 +1,20 @@
 "use client";
 
 import { authHeaders } from "./auth";
-import {
-  mockFailedRecords,
-  mockInstitutions,
-  mockLogs,
-  mockMetrics,
-} from "./mock-data";
 import type {
   ApiErrorPayload,
   AuthSession,
+  AdminUser,
   CreatedInstitution,
   DashboardMetrics,
   FailedRecord,
   Institution,
-  PatientDraft,
-  PatientSubmission,
-  ProcessingLog,
 } from "./types";
 
-const apiBase = process.env.NEXT_PUBLIC_ADAPTER_API_BASE_URL?.replace(/\/$/, "");
+const apiBase = (
+  process.env.NEXT_PUBLIC_ADAPTER_API_BASE_URL ??
+  "https://engorge-knoll-crust.ngrok-free.dev/api"
+).replace(/\/$/, "");
 
 class AdapterApiError extends Error {
   status: number;
@@ -33,24 +28,18 @@ class AdapterApiError extends Error {
   }
 }
 
-function shouldUseMockData() {
-  return !apiBase;
-}
-
 function url(path: string) {
-  return `${apiBase}${path}`;
+  const normalizedPath = path.replace(/^\/api/, "");
+  return `${apiBase}${normalizedPath}`;
 }
 
 async function request<T>(path: string, init: RequestInit = {}) {
-  if (shouldUseMockData()) {
-    throw new AdapterApiError(503, {
-      message: "Adapter API base URL is not configured.",
-    });
-  }
-
   const headers = new Headers(init.headers);
   headers.set("Accept", "application/json");
-  headers.set("Content-Type", "application/json");
+
+  if (init.body) {
+    headers.set("Content-Type", "application/json");
+  }
 
   Object.entries(authHeaders()).forEach(([key, value]) => {
     headers.set(key, value);
@@ -58,11 +47,12 @@ async function request<T>(path: string, init: RequestInit = {}) {
 
   const response = await fetch(url(path), {
     ...init,
+    credentials: "include",
     headers,
   });
 
   const text = await response.text();
-  const payload = text ? JSON.parse(text) : undefined;
+  const payload = parseJson(text);
 
   if (!response.ok) {
     throw new AdapterApiError(response.status, payload ?? {});
@@ -71,181 +61,115 @@ async function request<T>(path: string, init: RequestInit = {}) {
   return payload as T;
 }
 
+function parseJson(text: string) {
+  if (!text) {
+    return undefined;
+  }
+
+  try {
+    return JSON.parse(text);
+  } catch {
+    return { message: text };
+  }
+}
+
+type ApiFailedRecord = {
+  id: number;
+  institution: number | null;
+  institution_name: string;
+  raw_payload: string | Record<string, unknown>;
+  error_message: string;
+  error_details: unknown;
+  stage: string;
+  resolved: boolean;
+  resolution_notes?: string | null;
+  created_at: string;
+};
+
+function normalizeFailedRecord(record: ApiFailedRecord): FailedRecord {
+  return {
+    id: record.id,
+    institution: record.institution ?? 0,
+    institution_name: record.institution_name,
+    failure_stage: record.stage,
+    error_code: record.stage.toUpperCase(),
+    message: record.error_message,
+    raw_payload:
+      typeof record.raw_payload === "string"
+        ? parseJson(record.raw_payload) ?? { value: record.raw_payload }
+        : record.raw_payload,
+    error_details: record.error_details,
+    resolved: record.resolved,
+    resolution_notes: record.resolution_notes ?? undefined,
+    created_at: record.created_at,
+  };
+}
+
 export function isUnauthorized(error: unknown) {
   return error instanceof AdapterApiError && error.status === 401;
 }
 
 export async function login(username: string, password: string) {
-  try {
-    return await request<AuthSession>("/api/auth/login/", {
-      method: "POST",
-      body: JSON.stringify({ username, password }),
-    });
-  } catch (error) {
-    if (
-      shouldUseMockData() &&
-      username.trim() === "admin"
-    ) {
-      return {
-        access: "local-demo-admin-session",
-        user: {
-          id: 1,
-          username: "admin",
-          is_staff: true,
-          is_superuser: true,
-        },
-      } satisfies AuthSession;
-    }
+  await request<AuthSession>("/api/auth/login/", {
+    method: "POST",
+    body: JSON.stringify({ username, password }),
+  });
 
-    throw error;
-  }
+  const user = await getCurrentUser();
+
+  return {
+    status: "success",
+    user,
+  } satisfies AuthSession;
+}
+
+export async function getCurrentUser() {
+  return await request<AdminUser>("/api/auth/me/");
 }
 
 export async function logout() {
-  if (shouldUseMockData()) {
-    return;
-  }
-
   await request<void>("/api/auth/logout/", {
     method: "POST",
   });
 }
 
 export async function getMetrics() {
-  try {
-    return await request<DashboardMetrics>("/api/dashboard/metrics/");
-  } catch {
-    return mockMetrics;
-  }
-}
-
-export async function getLogs(filters?: {
-  institution?: string;
-  format_received?: string;
-  created_after?: string;
-  created_before?: string;
-}) {
-  try {
-    const params = new URLSearchParams();
-
-    Object.entries(filters ?? {}).forEach(([key, value]) => {
-      if (value) {
-        params.set(key, value);
-      }
-    });
-
-    const query = params.toString();
-
-    return await request<ProcessingLog[]>(`/api/logs/${query ? `?${query}` : ""}`);
-  } catch {
-    return mockLogs.filter((log) => {
-      if (filters?.institution && String(log.institution) !== filters.institution) {
-        return false;
-      }
-
-      if (
-        filters?.format_received &&
-        log.format_received !== filters.format_received
-      ) {
-        return false;
-      }
-
-      return true;
-    });
-  }
+  return await request<DashboardMetrics>("/api/dashboard/metrics/");
 }
 
 export async function getInstitutions() {
-  try {
-    return await request<Institution[]>("/api/institutions/");
-  } catch {
-    return mockInstitutions;
-  }
+  return await request<Institution[]>("/api/institutions/");
 }
 
 export async function createInstitution(input: {
   name: string;
   is_active: boolean;
 }) {
-  try {
-    return await request<CreatedInstitution>("/api/institutions/", {
-      method: "POST",
-      body: JSON.stringify(input),
-    });
-  } catch {
-    return {
-      id: Date.now(),
-      name: input.name,
-      is_active: input.is_active,
-      api_key: `ndhs_${crypto.randomUUID().replaceAll("-", "").slice(0, 24)}`,
-      created_at: new Date().toISOString(),
-    } satisfies CreatedInstitution;
-  }
+  return await request<CreatedInstitution>("/api/institutions/", {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
 }
 
 export async function revokeInstitution(id: number) {
-  try {
-    await request<void>(`/api/institutions/${id}/revoke/`, {
-      method: "POST",
-    });
-  } catch {
-    return;
-  }
-}
-
-export async function submitPatient(input: PatientDraft) {
-  const payload = {
-    institution_id: Number(input.institution_id),
-    first_name: input.first_name.trim(),
-    last_name: input.last_name.trim(),
-    gender: input.gender,
-    birth_date: input.birth_date,
-    phone: input.phone.trim() || undefined,
-    address: input.address.trim() || undefined,
-  };
-
-  try {
-    return await request<PatientSubmission>("/api/patients/", {
-      method: "POST",
-      body: JSON.stringify(payload),
-    });
-  } catch (error) {
-    if (error instanceof AdapterApiError && !shouldUseMockData()) {
-      return error.payload as PatientSubmission;
-    }
-
-    return {
-      status: "success",
-      golden_record_id: `GR-${Math.floor(100 + Math.random() * 900)}`,
-      format_detected: "admin-json",
-    } satisfies PatientSubmission;
-  }
+  await request<void>(`/api/institutions/${id}/revoke/`, {
+    method: "POST",
+  });
 }
 
 export async function getFailedRecords() {
-  try {
-    return await request<FailedRecord[]>("/api/dead-letter/");
-  } catch {
-    return mockFailedRecords;
-  }
+  const records = await request<ApiFailedRecord[]>("/api/dead-letter/");
+  return records.map(normalizeFailedRecord);
 }
 
 export async function resolveFailedRecord(id: number, resolution_notes: string) {
-  try {
-    return await request<FailedRecord>(`/api/dead-letter/${id}/`, {
-      method: "PATCH",
-      body: JSON.stringify({
-        resolved: true,
-        resolution_notes,
-      }),
-    });
-  } catch {
-    const record = mockFailedRecords.find((item) => item.id === id);
-
-    return {
-      ...record,
+  const record = await request<ApiFailedRecord>(`/api/dead-letter/${id}/`, {
+    method: "PATCH",
+    body: JSON.stringify({
       resolved: true,
       resolution_notes,
-    } as FailedRecord;
-  }
+    }),
+  });
+
+  return normalizeFailedRecord(record);
 }
