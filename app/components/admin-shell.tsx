@@ -51,8 +51,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   if (!session) {
     return (
       <div className="grid min-h-screen place-items-center px-6">
-        <div className="flex items-center gap-3 rounded-lg border border-[#d8e1d8] bg-white px-5 py-4 text-sm font-medium text-[#435246] shadow-sm">
-          <Activity className="h-5 w-5 animate-pulse text-[#2f6b4f]" />
+        <div className="flex items-center gap-3 rounded-[var(--radius-lg)] border border-[var(--line)] bg-[var(--surface)] px-5 py-4 text-sm font-medium text-[var(--text-secondary)] shadow-sm">
+          <Activity className="h-5 w-5 animate-pulse text-[var(--primary)]" />
           Checking admin session
         </div>
       </div>
@@ -63,7 +63,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen flex">
       {/* Fixed Sidebar */}
       <aside
-        className={`fixed left-0 top-0 h-screen w-80 border-r border-[#d8e1d8] bg-[#fbfcfa]/95 px-4 py-5 transition-transform duration-300 ease-in-out z-30 ${
+        className={`fixed left-0 top-0 z-30 h-screen w-80 border-r border-[var(--line)] bg-[var(--surface)]/95 px-4 py-5 transition-transform duration-300 ease-in-out ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -71,7 +71,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           <ShellBrand />
           <button
             aria-label="Close sidebar"
-            className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-[#cbd8cc] bg-white text-[#435246] lg:hidden"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-[var(--radius-md)] border border-[var(--line)] bg-[var(--surface)] text-[var(--text-secondary)] transition hover:bg-[var(--background)] hover:text-[var(--text-primary)] lg:hidden"
             onClick={() => setSidebarOpen(false)}
             title="Close sidebar"
             type="button"
@@ -85,17 +85,17 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       {/* Sidebar overlay for mobile */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 z-20 bg-[#17201b]/35 lg:hidden"
+          className="fixed inset-0 z-20 bg-[var(--text-primary)]/35 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       <div className={`flex-1 flex flex-col ${sidebarOpen ? "lg:ml-80" : ""}`}>
-        <header className="sticky top-0 z-20 border-b border-[#d8e1d8] bg-[#fbfcfa]/90 backdrop-blur">
+        <header className="sticky top-0 z-20 border-b border-[var(--line)] bg-[var(--background)]/90 backdrop-blur">
           <div className="flex min-h-16 items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
             <button
               aria-label="Toggle sidebar"
-              className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-[#cbd8cc] bg-white text-[#435246]"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-[var(--radius-md)] border border-[var(--line)] bg-[var(--surface)] text-[var(--text-secondary)] transition hover:bg-[var(--background)] hover:text-[var(--text-primary)]"
               onClick={() => setSidebarOpen(!sidebarOpen)}
               title="Toggle sidebar"
               type="button"
@@ -103,19 +103,19 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               <Menu className="h-5 w-5" />
             </button>
             <div className="hidden lg:block">
-              <p className="text-sm font-semibold text-[#17201b]">
+              <p className="text-sm font-semibold text-[var(--text-primary)]">
                 FHIR Adapter Admin
               </p>
-              <p className="text-xs text-[#637166]">
+              <p className="text-xs text-[var(--text-secondary)]">
                 Adapter operations console
               </p>
             </div>
             <div className="ml-auto flex items-center gap-3">
               <div className="hidden text-right sm:block">
-                <p className="text-sm font-semibold text-[#17201b]">
+                <p className="text-sm font-semibold text-[var(--text-primary)]">
                   {session?.user.username}
                 </p>
-                <p className="text-xs text-[#637166]">Staff admin</p>
+                <p className="text-xs text-[var(--text-secondary)]">Staff admin</p>
               </div>
               <Button onClick={handleLogout} variant="secondary">
                 <LogOut className="h-4 w-4" />
@@ -136,12 +136,12 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 function ShellBrand() {
   return (
     <div className="mb-6 flex items-center gap-3">
-      <div className="grid h-10 w-10 place-items-center rounded-md bg-[#2f6b4f] text-white shadow-sm">
+      <div className="grid h-10 w-10 place-items-center rounded-[var(--radius-base)] bg-[var(--primary)] text-white shadow-sm">
         <ClipboardList className="h-5 w-5" />
       </div>
       <div>
-        <p className="text-sm font-bold text-[#17201b]">FHIR Adapter</p>
-        <p className="text-xs text-[#637166]">Admin workspace</p>
+        <p className="text-sm font-bold text-[var(--text-primary)]">FHIR Adapter</p>
+        <p className="text-xs text-[var(--text-secondary)]">Admin workspace</p>
       </div>
     </div>
   );
@@ -160,10 +160,10 @@ function ShellNav({
 
         return (
           <Link
-            className={`flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-semibold transition ${
+            className={`flex items-center gap-3 rounded-[var(--radius-base)] px-3 py-2.5 text-sm font-semibold transition ${
               active
-                ? "bg-[#dceade] text-[#1f4d39]"
-                : "text-[#4c5b4f] hover:bg-[#edf2ed] hover:text-[#17201b]"
+                ? "bg-[color-mix(in_srgb,var(--primary)_10%,white)] text-[var(--primary)]"
+                : "text-[var(--text-secondary)] hover:bg-[var(--background)] hover:text-[var(--text-primary)]"
             }`}
             href={item.href}
             key={item.href}
