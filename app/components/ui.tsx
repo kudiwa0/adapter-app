@@ -64,7 +64,7 @@ export function Panel({
 }) {
   return (
     <section
-      className={`rounded-[var(--radius-lg)] border border-[var(--line)] bg-[var(--surface)] shadow-[0_18px_50px_rgba(31,41,55,0.06)] ${className}`}
+      className={`rounded-[var(--radius-lg)] border border-[var(--line)] bg-[var(--surface)] shadow-sm ${className}`}
     >
       {title || description || action ? (
         <div className="flex flex-col gap-3 border-b border-[var(--line)] px-5 py-4 sm:flex-row sm:items-start sm:justify-between">

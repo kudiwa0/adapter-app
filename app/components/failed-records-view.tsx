@@ -120,7 +120,7 @@ export function FailedRecordsView() {
         <Panel
           action={
             <label className="relative block w-full sm:w-72">
-              <Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-[#637166]" />
+              <Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-[var(--text-secondary)]" />
               <input
                 className={`${inputClass} pl-9`}
                 onChange={(event) => setQuery(event.target.value)}
@@ -142,7 +142,7 @@ export function FailedRecordsView() {
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full min-w-[760px] text-left text-sm">
-                <thead className="text-xs uppercase tracking-[0.12em] text-[#637166]">
+                <thead className="text-xs uppercase tracking-[0.12em] text-[var(--text-secondary)]">
                   <tr>
                     <th className="py-2 pr-4">Institution</th>
                     <th className="py-2 pr-4">Stage</th>
@@ -151,11 +151,11 @@ export function FailedRecordsView() {
                     <th className="py-2">Created</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#e3e9e3]">
+                <tbody className="divide-y divide-[var(--line)]">
                   {filtered.map((record) => (
                     <tr
-                      className={`cursor-pointer transition hover:bg-[#f5f8f4] ${
-                        selectedId === record.id ? "bg-[#edf5ef]" : ""
+                      className={`cursor-pointer transition hover:bg-[var(--background)] ${
+                        selectedId === record.id ? "bg-[color-mix(in_srgb,var(--primary)_8%,white)]" : ""
                       }`}
                       key={record.id}
                       onClick={() => {
@@ -164,13 +164,13 @@ export function FailedRecordsView() {
                         setNotes(record.resolution_notes ?? "");
                       }}
                     >
-                      <td className="py-3 pr-4 font-medium text-[#17201b]">
+                      <td className="py-3 pr-4 font-medium text-[var(--text-primary)]">
                         {record.institution_name}
                       </td>
-                      <td className="py-3 pr-4 text-[#435246]">
+                      <td className="py-3 pr-4 text-[var(--text-secondary)]">
                         {toSentence(record.failure_stage)}
                       </td>
-                      <td className="py-3 pr-4 font-mono text-xs text-[#8f1f16]">
+                      <td className="py-3 pr-4 font-mono text-xs text-[var(--danger)]">
                         {record.error_code}
                       </td>
                       <td className="py-3 pr-4">
@@ -178,7 +178,7 @@ export function FailedRecordsView() {
                           {record.resolved ? "Resolved" : "Open"}
                         </StatusBadge>
                       </td>
-                      <td className="py-3 text-[#637166]">
+                      <td className="py-3 text-[var(--text-secondary)]">
                         {formatDateTime(record.created_at)}
                       </td>
                     </tr>
@@ -209,25 +209,25 @@ export function FailedRecordsView() {
                     {toSentence(selected.failure_stage)}
                   </StatusBadge>
                 </div>
-                <h2 className="text-lg font-semibold text-[#17201b]">
+                <h2 className="text-lg font-semibold text-[var(--text-primary)]">
                   {selected.institution_name}
                 </h2>
-                <p className="mt-2 text-sm leading-6 text-[#637166]">
+                <p className="mt-2 text-sm leading-[1.6] text-[var(--text-secondary)]">
                   {selected.message}
                 </p>
               </div>
 
               {selected.error_details ? (
-                <pre className="max-h-52 overflow-auto rounded-md border border-[#f0d6a8] bg-[#fff8ec] p-4 text-xs leading-6 text-[#6b3c0f]">
+                <pre className="max-h-52 overflow-auto rounded-[var(--radius-md)] border border-[color-mix(in_srgb,var(--warning)_32%,white)] bg-[color-mix(in_srgb,var(--warning)_10%,white)] p-4 text-xs leading-[1.6] text-[var(--text-primary)]">
                   {JSON.stringify(selected.error_details, null, 2)}
                 </pre>
               ) : null}
 
-              <pre className="max-h-80 overflow-auto rounded-md border border-[#d8e1d8] bg-[#102018] p-4 text-xs leading-6 text-[#d6f3de]">
+              <pre className="max-h-80 overflow-auto rounded-[var(--radius-md)] border border-[var(--line)] bg-[var(--text-primary)] p-4 text-xs leading-[1.6] text-white">
                 {JSON.stringify(selected.raw_payload, null, 2)}
               </pre>
 
-              <label className="grid gap-2 text-sm font-medium text-[#2d392f]">
+              <label className="grid gap-2 text-sm font-medium text-[var(--text-primary)]">
                 Resolution notes
                 <textarea
                   className={`${inputClass} min-h-28 resize-y`}
@@ -238,10 +238,10 @@ export function FailedRecordsView() {
                 />
               </label>
 
-              <label className="flex items-start gap-3 rounded-md border border-[#d8e1d8] bg-[#fbfcfa] px-3 py-3 text-sm font-medium text-[#2d392f]">
+              <label className="flex items-start gap-3 rounded-[var(--radius-md)] border border-[var(--line)] bg-[var(--surface)] px-3 py-3 text-sm font-medium text-[var(--text-primary)]">
                 <input
                   checked={confirmResolve}
-                  className="mt-0.5 h-4 w-4 accent-[#2f6b4f]"
+                  className="mt-0.5 h-4 w-4 accent-[var(--primary)]"
                   disabled={selected.resolved}
                   onChange={(event) => setConfirmResolve(event.target.checked)}
                   type="checkbox"
