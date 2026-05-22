@@ -61,7 +61,6 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen flex">
-      {/* Fixed Sidebar */}
       <aside
         className={`fixed left-0 top-0 z-30 h-screen w-80 border-r border-[var(--line)] bg-[var(--surface)]/95 px-4 py-5 transition-transform duration-300 ease-in-out ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
@@ -82,7 +81,6 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         <ShellNav pathname={pathname} />
       </aside>
 
-      {/* Sidebar overlay for mobile */}
       {sidebarOpen && (
         <div
           className="fixed inset-0 z-20 bg-[var(--text-primary)]/35 lg:hidden"

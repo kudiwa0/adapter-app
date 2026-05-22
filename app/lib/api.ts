@@ -105,10 +105,6 @@ function normalizeFailedRecord(record: ApiFailedRecord): FailedRecord {
   };
 }
 
-export function isUnauthorized(error: unknown) {
-  return error instanceof AdapterApiError && error.status === 401;
-}
-
 export async function login(username: string, password: string) {
   await request<AuthSession>("/api/auth/login/", {
     method: "POST",
