@@ -9,3 +9,10 @@
 ✓ Ready in 1357ms
 Creating turbopack project { dir: 'D:\\DevRoom\\adapter-app', testMode: true }
 
+ GET / 307 in 1417ms (next.js: 775ms, application-code: 642ms)
+ GET /dashboard 200 in 274ms (next.js: 53ms, application-code: 220ms)
+ GET /login?next=%2Fdashboard 200 in 177ms (next.js: 72ms, application-code: 105ms)
+✓ Compiled in 217ms
+ GET /login?next=%2Fdashboard 200 in 228ms (next.js: 129ms, application-code: 99ms)
+✓ Compiled in 151ms
+ GET /login?next=%2Fdashboard 200 in 157ms (next.js: 87ms, application-code: 69ms)
