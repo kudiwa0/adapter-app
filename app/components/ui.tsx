@@ -10,13 +10,11 @@ export function Button({
   ...props
 }: ButtonProps) {
   const variants = {
-    primary: "border-transparent bg-[#2f6b4f] text-white hover:bg-[#265a43]",
-    secondary:
-      "border-[#cbd8cc] bg-white text-[#17201b] hover:border-[#aebfaf] hover:bg-[#f5f8f4]",
-    danger: "border-transparent bg-[#b42318] text-white hover:bg-[#921b13]",
-    ghost:
-      "border-transparent bg-transparent text-[#435246] hover:bg-[#edf2ed]",
-  };
+    primary: "border-transparent bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]",
+    secondary: "border-[var(--line)] bg-[var(--surface)] text-[var(--text-primary)] hover:bg-[var(--background)]",
+    danger: "border-transparent bg-[var(--danger)] text-white hover:bg-[var(--danger-hover)]",
+ghost: "border-transparent bg-transparent text-[var(--text-secondary)] hover:bg-[var(--background)]",
+   };
 
   return (
     <button
