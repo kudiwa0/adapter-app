@@ -188,14 +188,14 @@ export function InstitutionsView() {
   return (
     <>
       {copyNotice ? (
-        <div className="fixed right-4 top-4 z-50 max-w-sm rounded-lg border border-[#bfe6d5] bg-white px-4 py-3 shadow-[0_18px_60px_rgba(23,32,27,0.18)]">
+        <div className="fixed right-4 top-4 z-50 max-w-sm rounded-[var(--radius-lg)] border border-[color-mix(in_srgb,var(--success)_24%,white)] bg-[var(--surface)] px-4 py-3 shadow-md">
           <div className="flex items-center gap-3">
-            <span className="grid h-9 w-9 place-items-center rounded-md bg-[#e9f8f1] text-[#13795b]">
+            <span className="grid h-9 w-9 place-items-center rounded-[var(--radius-md)] border border-[color-mix(in_srgb,var(--success)_24%,white)] bg-[color-mix(in_srgb,var(--success)_10%,white)] text-[var(--success)]">
               <CheckCircle2 className="h-5 w-5" />
             </span>
             <div>
-              <p className="text-sm font-semibold text-[#17201b]">{copyNotice}</p>
-              <p className="text-xs text-[#637166]">Ready to share securely.</p>
+              <p className="text-sm font-semibold text-[var(--text-primary)]">{copyNotice}</p>
+              <p className="text-xs text-[var(--text-secondary)]">Ready to share securely.</p>
             </div>
           </div>
         </div>
@@ -223,10 +223,10 @@ export function InstitutionsView() {
                   value={name}
                 />
               </Field>
-              <label className="flex items-center gap-3 rounded-md border border-[#d8e1d8] bg-[#fbfcfa] px-3 py-3 text-sm font-medium text-[#2d392f]">
+              <label className="flex items-center gap-3 rounded-[var(--radius-md)] border border-[var(--line)] bg-[var(--surface)] px-3 py-3 text-sm font-medium text-[var(--text-primary)]">
                 <input
                   checked={active}
-                  className="h-4 w-4 accent-[#2f6b4f]"
+                  className="h-4 w-4 accent-[var(--primary)]"
                   onChange={(event) => setActive(event.target.checked)}
                   type="checkbox"
                 />
@@ -246,14 +246,14 @@ export function InstitutionsView() {
           {created ? (
             <Panel title="Generated API key">
               <div className="grid gap-4">
-                <div className="flex items-start gap-3 rounded-md border border-[#bfe6d5] bg-[#e9f8f1] p-4">
-                  <KeyRound className="mt-0.5 h-5 w-5 shrink-0 text-[#13795b]" />
+                <div className="flex items-start gap-3 rounded-[var(--radius-md)] border border-[var(--line)] bg-[var(--surface)] p-4">
+                  <KeyRound className="mt-0.5 h-5 w-5 shrink-0 text-[var(--primary)]" />
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold text-[#17201b]">
+                    <p className="text-sm font-semibold text-[var(--text-primary)]">
                       {created.name}
                     </p>
                     <button
-                      className="mt-2 block break-all text-left font-mono text-sm text-[#1f4d39] underline decoration-[#9ecfba] decoration-dotted underline-offset-4 transition hover:text-[#13795b]"
+                      className="mt-2 block break-all text-left font-mono text-sm text-[var(--primary)] underline decoration-[color-mix(in_srgb,var(--primary)_35%,white)] decoration-dotted underline-offset-4 transition hover:text-[var(--primary-hover)]"
                       onClick={() => copyKey(created.api_key)}
                       title="Copy API key"
                       type="button"
@@ -278,7 +278,7 @@ export function InstitutionsView() {
         <Panel
           action={
             <label className="relative block w-full sm:w-72">
-              <Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-[#637166]" />
+              <Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-[var(--text-secondary)]" />
               <input
                 className={`${inputClass} pl-9`}
                 onChange={(event) => setQuery(event.target.value)}
@@ -300,7 +300,7 @@ export function InstitutionsView() {
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full min-w-[860px] text-left text-sm">
-                <thead className="text-xs uppercase tracking-[0.12em] text-[#637166]">
+                <thead className="text-xs uppercase tracking-[0.12em] text-[var(--text-secondary)]">
                   <tr>
                     <th className="py-2 pr-4">Name</th>
                     <th className="py-2 pr-4">API Key</th>
@@ -309,21 +309,21 @@ export function InstitutionsView() {
                     <th className="py-2 text-right">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#e3e9e3]">
+                <tbody className="divide-y divide-[var(--line)]">
                   {filtered.map((institution) => {
                     const apiKey = apiKeys[institution.id] || institution.api_key;
                     const isVisible = Boolean(visibleKeys[institution.id]);
 
                     return (
                       <tr key={institution.id}>
-                        <td className="py-3 pr-4 font-medium text-[#17201b]">
+                        <td className="py-3 pr-4 font-medium text-[var(--text-primary)]">
                           {institution.name}
                         </td>
                         <td className="py-3 pr-4">
                           <div className="flex items-center gap-1.5">
                             <input
                               aria-label={`API key for ${institution.name}`}
-                              className="h-9 w-64 rounded-md border border-[#d8e1d8] bg-[#f8faf7] px-2 font-mono text-xs text-[#1f4d39] shadow-sm"
+                              className="h-9 w-64 rounded-[var(--radius-md)] border border-[var(--line)] bg-[var(--surface)] px-2 font-mono text-xs text-[var(--primary)] shadow-sm"
                               readOnly
                               title={
                                 apiKey
@@ -335,7 +335,7 @@ export function InstitutionsView() {
                             />
                             <button
                               aria-label={isVisible ? "Hide API key" : "Show API key"}
-                              className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-transparent text-[#637166] transition hover:bg-[#edf2ed] hover:text-[#17201b] disabled:cursor-not-allowed disabled:opacity-45"
+                              className="inline-flex h-9 w-9 items-center justify-center rounded-[var(--radius-md)] border border-transparent text-[var(--text-secondary)] transition hover:bg-[var(--background)] hover:text-[var(--text-primary)] disabled:cursor-not-allowed disabled:opacity-45"
                               disabled={!apiKey}
                               onClick={() =>
                                 setVisibleKeys((current) => ({
@@ -354,7 +354,7 @@ export function InstitutionsView() {
                             </button>
                             <button
                               aria-label="Copy API key"
-                              className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-transparent text-[#637166] transition hover:bg-[#edf2ed] hover:text-[#17201b] disabled:cursor-not-allowed disabled:opacity-45"
+                              className="inline-flex h-9 w-9 items-center justify-center rounded-[var(--radius-md)] border border-transparent text-[var(--text-secondary)] transition hover:bg-[var(--background)] hover:text-[var(--text-primary)] disabled:cursor-not-allowed disabled:opacity-45"
                               disabled={!apiKey}
                               onClick={() =>
                                 apiKey
@@ -379,7 +379,7 @@ export function InstitutionsView() {
                             {institution.is_active ? "Active" : "Revoked"}
                           </StatusBadge>
                         </td>
-                        <td className="py-3 pr-4 text-[#637166]">
+                        <td className="py-3 pr-4 text-[var(--text-secondary)]">
                           {formatDateTime(institution.created_at)}
                         </td>
                         <td className="py-3 text-right">

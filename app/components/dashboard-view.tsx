@@ -119,17 +119,17 @@ function MetricTile({
   loading: boolean;
 }) {
   return (
-    <div className="rounded-lg border border-[#d8e1d8] bg-white p-5 shadow-[0_14px_40px_rgba(23,32,27,0.05)]">
+    <div className="rounded-[var(--radius-lg)] border border-[var(--line)] bg-[var(--surface)] p-5 shadow-sm">
       <div className="flex items-center justify-between gap-4">
-        <p className="text-sm font-medium text-[#637166]">{label}</p>
-        <span className="grid h-10 w-10 place-items-center rounded-md bg-[#edf5ef] text-[#2f6b4f]">
+        <p className="text-sm font-medium text-[var(--text-secondary)]">{label}</p>
+        <span className="grid h-10 w-10 place-items-center rounded-[var(--radius-md)] border border-[var(--line)] bg-[var(--surface)] text-[var(--primary)]">
           {icon}
         </span>
       </div>
       {loading ? (
-        <div className="mt-5 h-8 w-24 animate-pulse rounded bg-[#eef3ee]" />
+        <div className="mt-5 h-8 w-24 animate-pulse rounded-[var(--radius-md)] bg-[var(--background)]" />
       ) : (
-        <p className="mt-4 font-mono text-3xl font-semibold text-[#17201b]">
+        <p className="mt-4 font-mono text-3xl font-semibold text-[var(--text-primary)]">
           {value}
         </p>
       )}
@@ -151,19 +151,19 @@ function RecentFailedRecords({ records }: { records: FailedRecord[] }) {
     <div className="grid gap-3">
       {records.map((record) => (
         <div
-          className="rounded-md border border-[#e3e9e3] bg-[#fbfcfa] p-4"
+          className="rounded-[var(--radius-md)] border border-[var(--line)] bg-[var(--surface)] p-4"
           key={record.id}
         >
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <p className="font-medium text-[#17201b]">{record.institution_name}</p>
-              <p className="mt-1 text-sm text-[#637166]">{record.message}</p>
+              <p className="font-medium text-[var(--text-primary)]">{record.institution_name}</p>
+              <p className="mt-1 text-sm text-[var(--text-secondary)]">{record.message}</p>
             </div>
             <StatusBadge tone={record.resolved ? "success" : "danger"}>
               {record.resolved ? "Resolved" : "Open"}
             </StatusBadge>
           </div>
-          <p className="mt-3 font-mono text-xs text-[#637166]">
+          <p className="mt-3 font-mono text-xs text-[var(--text-secondary)]">
             {record.error_code} - {formatDateTime(record.created_at)}
           </p>
         </div>
