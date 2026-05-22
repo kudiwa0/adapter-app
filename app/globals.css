@@ -37,10 +37,9 @@ html {
 }
 
 body {
-  min-width: 320px;
-  background:
-    linear-gradient(135deg, rgba(47, 107, 79, 0.08), transparent 30%),
-    linear-gradient(180deg, #fbfcfa 0%, var(--background) 44%);
+  background: var(--background);
+  color: var(--foreground);
+  line-height: 1.6;
 }
 
 button,
