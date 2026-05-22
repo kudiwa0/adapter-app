@@ -51,18 +51,18 @@ export function LoginForm() {
 
   return (
     <main className="grid min-h-screen place-items-center px-4 py-10">
-      <section className="w-full max-w-md rounded-lg border border-[#d8e1d8] bg-white p-6 shadow-[0_24px_80px_rgba(23,32,27,0.08)]">
+      <section className="w-full max-w-md rounded-[var(--radius-lg)] border border-[var(--line)] bg-[var(--surface)] p-6 shadow-sm">
         <div className="mb-8">
-          <div className="mb-4 inline-grid h-11 w-11 place-items-center rounded-md bg-[#2f6b4f] text-white">
+          <div className="mb-4 inline-grid h-11 w-11 place-items-center rounded-[var(--radius-base)] bg-[var(--primary)] text-white">
             <ShieldCheck className="h-5 w-5" />
           </div>
-          <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#2f6b4f]">
+          <p className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--primary)]">
             Adapter Admin
           </p>
-          <h1 className="mt-2 text-2xl font-semibold text-[#17201b]">
+          <h1 className="mt-2 text-2xl font-semibold text-[var(--text-primary)]">
             Sign in to operations
           </h1>
-          <p className="mt-2 text-sm leading-6 text-[#637166]">
+          <p className="mt-2 text-sm leading-[1.6] text-[var(--text-secondary)]">
             Use your admin credentials to manage institutions, dashboard
             metrics, and failed records.
           </p>
