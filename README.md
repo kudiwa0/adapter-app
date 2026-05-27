@@ -59,7 +59,7 @@ GET /api/auth/me/
 ```json
 {
   "username": "admin",
-  "password": "admin-password"
+  "password": "pulseadmin"
 }
 ```
 
