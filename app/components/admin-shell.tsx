@@ -12,9 +12,10 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useState } from "react";
 import { clearSession, getStoredSession, subscribeToSessionStore } from "../lib/auth";
 import { logout } from "../lib/api";
+import type { AuthSession } from "../lib/types";
 import { Button } from "./ui";
 
 const navItems = [
@@ -27,27 +28,30 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [isHydrated, setIsHydrated] = useState(false);
-  const session = useSyncExternalStore(
-    subscribeToSessionStore,
-    getStoredSession,
-    () => null,
-  );
+  const [session, setSession] = useState<AuthSession | null>(null);
+  const [hydrated, setHydrated] = useState(false);
 
-  // Ensure component is hydrated before checking session
   useEffect(() => {
-    setIsHydrated(true);
+    const updateSession = () => {
+      setSession(getStoredSession());
+      setHydrated(true);
+    };
+
+    updateSession();
+
+    const unsubscribe = subscribeToSessionStore(updateSession);
+    return unsubscribe;
   }, []);
 
   useEffect(() => {
-    if (!isHydrated) {
+    if (!hydrated) {
       return;
     }
 
     if (!session) {
       router.replace(`/login?next=${encodeURIComponent(pathname)}`);
     }
-  }, [pathname, router, session, isHydrated]);
+  }, [hydrated, pathname, router, session]);
 
   async function handleLogout() {
     try {
