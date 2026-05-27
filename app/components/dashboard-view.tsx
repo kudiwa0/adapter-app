@@ -53,8 +53,12 @@ export function DashboardView() {
 
     load();
 
+    // Auto-refresh every 3 seconds
+    const interval = setInterval(load, 3000);
+
     return () => {
       active = false;
+      clearInterval(interval);
     };
   }, []);
 
