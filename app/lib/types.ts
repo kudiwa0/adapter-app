@@ -9,7 +9,7 @@ export type AdminUser = {
 };
 
 export type AuthSession = {
-  access?: string;
+  token?: string;
   status?: string;
   user: AdminUser;
 };
