@@ -27,17 +27,27 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [isHydrated, setIsHydrated] = useState(false);
   const session = useSyncExternalStore(
     subscribeToSessionStore,
     getStoredSession,
     () => null,
   );
 
+  // Ensure component is hydrated before checking session
   useEffect(() => {
+    setIsHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isHydrated) {
+      return;
+    }
+
     if (!session) {
       router.replace(`/login?next=${encodeURIComponent(pathname)}`);
     }
-  }, [pathname, router, session]);
+  }, [pathname, router, session, isHydrated]);
 
   async function handleLogout() {
     try {
