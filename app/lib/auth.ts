@@ -71,5 +71,11 @@ export function subscribeToSessionStore(callback: () => void) {
 }
 
 export function authHeaders(): Record<string, string> {
+  const session = getStoredSession();
+  if (session?.token) {
+    return {
+      Authorization: `Token ${session.token}`,
+    };
+  }
   return {};
 }

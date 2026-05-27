@@ -13,7 +13,7 @@ import type {
 
 const apiBase = (
   process.env.NEXT_PUBLIC_ADAPTER_API_BASE_URL ??
-  "https://engorge-knoll-crust.ngrok-free.dev/api"
+  "https://fhir-adapater.onrender.com/api"
 ).replace(/\/$/, "");
 
 class AdapterApiError extends Error {
@@ -33,7 +33,11 @@ function url(path: string) {
   return `${apiBase}${normalizedPath}`;
 }
 
-async function request<T>(path: string, init: RequestInit = {}) {
+async function request<T>(
+  path: string,
+  init: RequestInit = {},
+  authToken?: string
+) {
   const headers = new Headers(init.headers);
   headers.set("Accept", "application/json");
 
@@ -41,9 +45,13 @@ async function request<T>(path: string, init: RequestInit = {}) {
     headers.set("Content-Type", "application/json");
   }
 
-  Object.entries(authHeaders()).forEach(([key, value]) => {
-    headers.set(key, value);
-  });
+  if (authToken) {
+    headers.set("Authorization", `Token ${authToken}`);
+  } else {
+    Object.entries(authHeaders()).forEach(([key, value]) => {
+      headers.set(key, value);
+    });
+  }
 
   const response = await fetch(url(path), {
     ...init,
@@ -106,21 +114,25 @@ function normalizeFailedRecord(record: ApiFailedRecord): FailedRecord {
 }
 
 export async function login(username: string, password: string) {
-  await request<AuthSession>("/api/auth/login/", {
-    method: "POST",
-    body: JSON.stringify({ username, password }),
-  });
+  const loginResponse = await request<{ status: string; token: string }>(
+    "/api/auth/login/",
+    {
+      method: "POST",
+      body: JSON.stringify({ username, password }),
+    }
+  );
 
-  const user = await getCurrentUser();
+  const user = await getCurrentUser(loginResponse.token);
 
   return {
-    status: "success",
+    token: loginResponse.token,
+    status: loginResponse.status,
     user,
   } satisfies AuthSession;
 }
 
-export async function getCurrentUser() {
-  return await request<AdminUser>("/api/auth/me/");
+export async function getCurrentUser(authToken?: string) {
+  return await request<AdminUser>("/api/auth/me/", {}, authToken);
 }
 
 export async function logout() {
