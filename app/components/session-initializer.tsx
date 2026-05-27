@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useRouter, usePathname } from "next/navigation";
 import { getStoredSession } from "../lib/auth";
 
 /**
@@ -10,16 +10,26 @@ import { getStoredSession } from "../lib/auth";
  */
 export function SessionInitializer() {
   const router = useRouter();
+  const pathname = usePathname();
+  const [isChecked, setIsChecked] = useState(false);
 
   useEffect(() => {
-    // Check if session exists in localStorage
+    // Skip check on login page
+    if (pathname === "/login") {
+      setIsChecked(true);
+      return;
+    }
+
+    // Check if session exists in localStorage after hydration
     const session = getStoredSession();
 
-    // If no session, redirect to login
+    // If no session and not on login page, redirect to login
     if (!session) {
-      router.replace("/login");
+      router.replace(`/login?next=${encodeURIComponent(pathname)}`);
     }
-  }, [router]);
+
+    setIsChecked(true);
+  }, [pathname, router]);
 
   return null;
 }
