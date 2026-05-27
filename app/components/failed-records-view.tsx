@@ -53,8 +53,12 @@ export function FailedRecordsView() {
 
     load();
 
+    // Auto-refresh every 3 seconds
+    const interval = setInterval(load, 3000);
+
     return () => {
       mounted = false;
+      clearInterval(interval);
     };
   }, []);
 
