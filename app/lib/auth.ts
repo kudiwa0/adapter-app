@@ -44,14 +44,26 @@ function readSession(): AuthSession | null {
 }
 
 export function getStoredSession(): AuthSession | null {
-  return readSession();
+  const session = readSession();
+  if (session) {
+    console.log("✅ Session retrieved from localStorage:", session.user?.username);
+  } else {
+    console.log("❌ No session found in localStorage");
+  }
+  return session;
 }
 
 export function storeSession(session: AuthSession) {
-  window.localStorage.setItem(SESSION_KEY, JSON.stringify(session));
-  cachedRaw = null;
-  cachedSession = null;
-  notifyListeners();
+  try {
+    const sessionStr = JSON.stringify(session);
+    window.localStorage.setItem(SESSION_KEY, sessionStr);
+    console.log("✅ Session saved to localStorage:", session.user?.username);
+    cachedRaw = sessionStr;
+    cachedSession = session;
+    notifyListeners();
+  } catch (error) {
+    console.error("❌ Failed to save session:", error);
+  }
 }
 
 export function clearSession() {
