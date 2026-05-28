@@ -72,6 +72,25 @@ export function DashboardView() {
     ];
   }, [metrics]);
 
+  const xAxisTicks = useMemo(() => {
+    if (!metrics) {
+      return [0, 5];
+    }
+    const maxVal = Math.max(
+      metrics.total_received,
+      metrics.total_successful,
+      metrics.total_failed
+    );
+    const ticks = [];
+    const step = 5;
+    const upperLimit = Math.max(5, Math.ceil(maxVal / step) * step);
+    for (let i = 0; i <= upperLimit; i += step) {
+      ticks.push(i);
+    }
+    return ticks;
+  }, [metrics]);
+
+
   useEffect(() => {
     metricsRef.current = metrics;
   }, [metrics]);
@@ -134,17 +153,7 @@ export function DashboardView() {
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
-            {legendItems.map((item) => (
-              <div key={item.key} className="flex items-center gap-2 text-xs font-medium text-[var(--text-secondary)]">
-                <span
-                  className="h-2.5 w-2.5 rounded-full"
-                  style={{ backgroundColor: item.color }}
-                />
-                <span>{item.label}</span>
-              </div>
-            ))}
-          </div>
+
         </div>
 
         <div className="space-y-3">
@@ -162,11 +171,13 @@ export function DashboardView() {
                   layout="vertical"
                   barSize={10}
                   barCategoryGap={18}
-                  margin={{ top: 8, right: 12, left: 0, bottom: 0 }}
+                  margin={{ top: 8, right: 12, left: 12, bottom: 0 }}
                 >
                   <CartesianGrid stroke="rgba(148,163,184,0.18)" horizontal={false} />
                   <XAxis
                     type="number"
+                    ticks={xAxisTicks}
+                    domain={[0, xAxisTicks[xAxisTicks.length - 1]]}
                     interval={0}
                     tickLine={false}
                     axisLine={false}
@@ -177,8 +188,7 @@ export function DashboardView() {
                     type="category"
                     tickLine={false}
                     axisLine={false}
-                    tick={{ fill: "var(--text-secondary)", fontSize: 12 }}
-                    width={140}
+                    hide
                   />
                   <Tooltip
                     cursor={<CustomTooltipCursor />}
@@ -200,17 +210,50 @@ export function DashboardView() {
             )}
           </div>
 
-          <div className="rounded-[var(--radius-lg)] border border-[var(--line)] bg-[var(--background)] px-4 py-3">
-            <div className="flex items-center justify-between gap-3">
+          {/* Legend below graph */}
+          <div className="flex flex-col gap-2 pt-1 w-1/4">
+            {metrics ? (
+              [
+                { key: "received",   label: "Records received", color: chartColorMap.received,   value: metrics.total_received },
+                { key: "successful", label: "Successful",        color: chartColorMap.successful, value: metrics.total_successful },
+                { key: "failed",     label: "Failed",            color: chartColorMap.failed,      value: metrics.total_failed },
+              ].map((item) => (
+                <div key={item.key} className="flex w-full items-center justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: item.color }} />
+                    <span className="text-xs font-medium text-[var(--text-secondary)]">{item.label}</span>
+                  </div>
+                  <span className="text-xs font-semibold tabular-nums text-[var(--text-primary)]">{formatNumber(item.value)}</span>
+                </div>
+              ))
+            ) : (
+              [
+                { key: "received",   label: "Records received", color: chartColorMap.received },
+                { key: "successful", label: "Successful",        color: chartColorMap.successful },
+                { key: "failed",     label: "Failed",            color: chartColorMap.failed },
+              ].map((item) => (
+                <div key={item.key} className="flex w-full items-center justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: item.color }} />
+                    <span className="text-xs font-medium text-[var(--text-secondary)]">{item.label}</span>
+                  </div>
+                  <span className="text-xs font-semibold tabular-nums text-[var(--text-secondary)]">-</span>
+                </div>
+              ))
+            )}
+          </div>
+
+          <div className="pt-2">
+            <div className="flex flex-col gap-1">
               <div className="flex items-center gap-3">
-                <p className="text-xs font-medium uppercase tracking-[0.18em] text-[var(--text-secondary)]">
+                <p className="text-xl font-medium text-[var(--text-secondary)]">
                   Success rate
                 </p>
                 <p className="text-xl font-semibold text-[var(--text-primary)]">
                   {metrics ? formatPercent(metrics.success_rate) : "-"}
                 </p>
               </div>
-              <div className="rounded-full bg-[var(--surface)] px-3 py-1 text-xs font-medium text-[var(--text-secondary)]">
+              <div className="text-xs font-medium text-[var(--text-secondary)]">
                 {metrics ? formatNumber(metrics.total_successful) : "-"} successful of {metrics ? formatNumber(metrics.total_received) : "-"} received
               </div>
             </div>
