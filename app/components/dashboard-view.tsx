@@ -1,51 +1,105 @@
 "use client";
 
-import { AlertTriangle, CheckCircle2, Gauge, Inbox } from "lucide-react";
-import type { ReactNode } from "react";
-import { useEffect, useState } from "react";
-import { getFailedRecords, getMetrics } from "../lib/api";
-import { formatDateTime, formatNumber, formatPercent } from "../lib/format";
-import type { DashboardMetrics, FailedRecord } from "../lib/types";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  EmptyState,
-  ErrorBanner,
-  LoadingRows,
-  PageHeader,
-  Panel,
-  StatusBadge,
-} from "./ui";
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+import { getMetrics } from "../lib/api";
+import { formatNumber, formatPercent } from "../lib/format";
+import type { DashboardMetrics } from "../lib/types";
+import { ErrorBanner, PageHeader } from "./ui";
+
+const chartColorMap = {
+  received: "#2563eb",
+  successful: "#7c3aed",
+  failed: "#ef4444",
+};
+
+const legendItems = [
+  { key: "received", label: "Records received", color: chartColorMap.received },
+  { key: "successful", label: "Successful", color: chartColorMap.successful },
+  { key: "failed", label: "Failed", color: chartColorMap.failed },
+] as const;
+
+function CustomTooltipCursor({ x, y, width }: { x?: number; y?: number; width?: number }) {
+  return (
+    <rect
+      x={x}
+      y={y}
+      width={width}
+      height={30}
+      fill="rgba(148,163,184,0.08)"
+      rx={0}
+      ry={0}
+    />
+  );
+}
 
 export function DashboardView() {
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
-  const [failedRecords, setFailedRecords] = useState<FailedRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const metricsRef = useRef<DashboardMetrics | null>(null);
+
+  const chartData = useMemo(() => {
+    if (!metrics) {
+      return [];
+    }
+
+    return [
+      {
+        name: "Records received",
+        value: metrics.total_received,
+        fill: chartColorMap.received,
+      },
+      {
+        name: "Successful",
+        value: metrics.total_successful,
+        fill: chartColorMap.successful,
+      },
+      {
+        name: "Failed",
+        value: metrics.total_failed,
+        fill: chartColorMap.failed,
+      },
+    ];
+  }, [metrics]);
+
+  useEffect(() => {
+    metricsRef.current = metrics;
+  }, [metrics]);
 
   useEffect(() => {
     let active = true;
 
     async function load() {
-      setLoading(true);
+      if (metricsRef.current === null) {
+        setLoading(true);
+      }
+
       setError("");
 
       try {
-        const [nextMetrics, nextFailedRecords] = await Promise.all([
-          getMetrics(),
-          getFailedRecords(),
-        ]);
+        const nextMetrics = await getMetrics();
 
         if (!active) {
           return;
         }
 
         setMetrics(nextMetrics);
-        setFailedRecords(nextFailedRecords.slice(0, 5));
       } catch {
         if (active) {
           setError("Dashboard data could not be loaded.");
         }
       } finally {
-        if (active) {
+        if (active && metricsRef.current === null) {
           setLoading(false);
         }
       }
@@ -53,7 +107,6 @@ export function DashboardView() {
 
     load();
 
-    // Auto-refresh every 3 seconds
     const interval = setInterval(load, 3000);
 
     return () => {
@@ -72,106 +125,99 @@ export function DashboardView() {
 
       {error ? <ErrorBanner message={error} /> : null}
 
-      <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <MetricTile
-          icon={<Inbox className="h-5 w-5" />}
-          label="Records received"
-          loading={loading}
-          value={metrics ? formatNumber(metrics.total_received) : "-"}
-        />
-        <MetricTile
-          icon={<CheckCircle2 className="h-5 w-5" />}
-          label="Successful"
-          loading={loading}
-          value={metrics ? formatNumber(metrics.total_successful) : "-"}
-        />
-        <MetricTile
-          icon={<AlertTriangle className="h-5 w-5" />}
-          label="Failed"
-          loading={loading}
-          value={metrics ? formatNumber(metrics.total_failed) : "-"}
-        />
-        <MetricTile
-          icon={<Gauge className="h-5 w-5" />}
-          label="Success rate"
-          loading={loading}
-          value={metrics ? formatPercent(metrics.success_rate) : "-"}
-        />
-      </div>
+      <section className="rounded-[var(--radius-xl)] border border-[var(--line)] bg-[var(--surface)] p-5 shadow-sm">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-sm font-semibold text-[var(--text-primary)]">Throughput overview</p>
+            <p className="text-xs text-[var(--text-secondary)]">
+              Live totals for records, successful processing, and failed items.
+            </p>
+          </div>
 
-      <div className="grid gap-6 xl:grid-cols-2">
-        <Panel
-          description="Latest failed records requiring review or manual resolution."
-          title="Recent failed records"
-        >
-          {loading ? <LoadingRows /> : <RecentFailedRecords records={failedRecords} />}
-        </Panel>
-      </div>
+          <div className="flex flex-wrap items-center gap-3">
+            {legendItems.map((item) => (
+              <div key={item.key} className="flex items-center gap-2 text-xs font-medium text-[var(--text-secondary)]">
+                <span
+                  className="h-2.5 w-2.5 rounded-full"
+                  style={{ backgroundColor: item.color }}
+                />
+                <span>{item.label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          <div className="h-[140px] w-full">
+            {loading && !metrics ? (
+              <div className="flex h-full animate-pulse items-end gap-3 rounded-[var(--radius-lg)] bg-[var(--background)] p-4">
+                <div className="h-full w-1/3 rounded-[10px] bg-[var(--line)]" />
+                <div className="h-4/5 w-1/3 rounded-[10px] bg-[var(--line)]" />
+                <div className="h-2/5 w-1/3 rounded-[10px] bg-[var(--line)]" />
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={chartData}
+                  layout="vertical"
+                  barSize={10}
+                  barCategoryGap={18}
+                  margin={{ top: 8, right: 12, left: 0, bottom: 0 }}
+                >
+                  <CartesianGrid stroke="rgba(148,163,184,0.18)" horizontal={false} />
+                  <XAxis
+                    type="number"
+                    interval={0}
+                    tickLine={false}
+                    axisLine={false}
+                    tick={{ fill: "var(--text-secondary)", fontSize: 12 }}
+                  />
+                  <YAxis
+                    dataKey="name"
+                    type="category"
+                    tickLine={false}
+                    axisLine={false}
+                    tick={{ fill: "var(--text-secondary)", fontSize: 12 }}
+                    width={140}
+                  />
+                  <Tooltip
+                    cursor={<CustomTooltipCursor />}
+                    contentStyle={{
+                      borderRadius: "12px",
+                      borderColor: "var(--line)",
+                      backgroundColor: "var(--surface)",
+                      color: "var(--text-primary)",
+                    }}
+                    formatter={(value) => [formatNumber(Number(value ?? 0)), ""]}
+                  />
+                  <Bar dataKey="value" radius={[0, 10, 10, 0]}>
+                    {chartData.map((entry) => (
+                      <Cell fill={entry.fill} key={entry.name} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+
+          <div className="rounded-[var(--radius-lg)] border border-[var(--line)] bg-[var(--background)] px-4 py-3">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <p className="text-xs font-medium uppercase tracking-[0.18em] text-[var(--text-secondary)]">
+                  Success rate
+                </p>
+                <p className="text-xl font-semibold text-[var(--text-primary)]">
+                  {metrics ? formatPercent(metrics.success_rate) : "-"}
+                </p>
+              </div>
+              <div className="rounded-full bg-[var(--surface)] px-3 py-1 text-xs font-medium text-[var(--text-secondary)]">
+                {metrics ? formatNumber(metrics.total_successful) : "-"} successful of {metrics ? formatNumber(metrics.total_received) : "-"} received
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
     </>
   );
 }
 
-function MetricTile({
-  icon,
-  label,
-  value,
-  loading,
-}: {
-  icon: ReactNode;
-  label: string;
-  value: string;
-  loading: boolean;
-}) {
-  return (
-    <div className="rounded-[var(--radius-lg)] border border-[var(--line)] bg-[var(--surface)] p-5 shadow-sm">
-      <div className="flex items-center justify-between gap-4">
-        <p className="text-sm font-medium text-[var(--text-secondary)]">{label}</p>
-        <span className="grid h-10 w-10 place-items-center rounded-[var(--radius-md)] border border-[var(--line)] bg-[var(--surface)] text-[var(--primary)]">
-          {icon}
-        </span>
-      </div>
-      {loading ? (
-        <div className="mt-5 h-8 w-24 animate-pulse rounded-[var(--radius-md)] bg-[var(--background)]" />
-      ) : (
-        <p className="mt-4 font-mono text-3xl font-semibold text-[var(--text-primary)]">
-          {value}
-        </p>
-      )}
-    </div>
-  );
-}
-
-function RecentFailedRecords({ records }: { records: FailedRecord[] }) {
-  if (records.length === 0) {
-    return (
-      <EmptyState
-        description="Failed adapter records will appear here."
-        title="No failed records"
-      />
-    );
-  }
-
-  return (
-    <div className="grid gap-3">
-      {records.map((record) => (
-        <div
-          className="rounded-[var(--radius-md)] border border-[var(--line)] bg-[var(--surface)] p-4"
-          key={record.id}
-        >
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <p className="font-medium text-[var(--text-primary)]">{record.institution_name}</p>
-              <p className="mt-1 text-sm text-[var(--text-secondary)]">{record.message}</p>
-            </div>
-            <StatusBadge tone={record.resolved ? "success" : "danger"}>
-              {record.resolved ? "Resolved" : "Open"}
-            </StatusBadge>
-          </div>
-          <p className="mt-3 font-mono text-xs text-[var(--text-secondary)]">
-            {record.error_code} - {formatDateTime(record.created_at)}
-          </p>
-        </div>
-      ))}
-    </div>
-  );
-}

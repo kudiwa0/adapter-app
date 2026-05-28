@@ -11,7 +11,7 @@ import {
   RotateCcw,
   Search,
 } from "lucide-react";
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import {
   createInstitution,
   getInstitutions,
@@ -65,6 +65,7 @@ export function InstitutionsView() {
   const [apiKeys, setApiKeys] = useState<Record<number, string>>(readStoredApiKeys);
   const [visibleKeys, setVisibleKeys] = useState<Record<number, boolean>>({});
   const [copyNotice, setCopyNotice] = useState("");
+  const institutionsRef = useRef<Institution[]>([]);
 
   useEffect(() => {
     if (!copyNotice) {
@@ -77,10 +78,17 @@ export function InstitutionsView() {
   }, [copyNotice]);
 
   useEffect(() => {
+    institutionsRef.current = institutions;
+  }, [institutions]);
+
+  useEffect(() => {
     let mounted = true;
 
     async function load() {
-      setLoading(true);
+      if (institutionsRef.current.length === 0) {
+        setLoading(true);
+      }
+
       setError("");
 
       try {
@@ -94,7 +102,7 @@ export function InstitutionsView() {
           setError("Institutions could not be loaded.");
         }
       } finally {
-        if (mounted) {
+        if (mounted && institutionsRef.current.length === 0) {
           setLoading(false);
         }
       }
@@ -102,7 +110,7 @@ export function InstitutionsView() {
 
     load();
 
-    // Auto-refresh every 3 seconds
+    // Auto-refresh every 3 seconds without blanking the visible list
     const interval = setInterval(load, 3000);
 
     return () => {
@@ -294,7 +302,7 @@ export function InstitutionsView() {
           description="Keys are available here only after this frontend has generated them from the live API."
           title="Institution list"
         >
-          {loading ? (
+          {loading && institutions.length === 0 ? (
             <LoadingRows rows={6} />
           ) : filtered.length === 0 ? (
             <EmptyState
