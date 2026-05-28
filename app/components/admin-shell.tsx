@@ -5,12 +5,11 @@ import {
   AlertTriangle,
   BarChart3,
   Building2,
-  ClipboardList,
   LogOut,
   Menu,
-  X,
 } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { clearSession, getStoredSession, subscribeToSessionStore } from "../lib/auth";
@@ -24,12 +23,28 @@ const navItems = [
   { href: "/failed-records", label: "Failed Records", icon: AlertTriangle },
 ];
 
+function resolveRouteLabel(pathname: string) {
+  const match = navItems.find((item) => item.href === pathname);
+
+  if (match) {
+    return match.label;
+  }
+
+  const trimmed = pathname.replace(/^\//, "").replace(/\/+$/, "");
+  return trimmed
+    .split("/")
+    .filter(Boolean)
+    .map((segment) => segment.replace(/[-_]/g, " ").replace(/\b\w/g, (char) => char.toUpperCase()))
+    .join(" / ");
+}
+
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [session, setSession] = useState<AuthSession | null>(null);
   const [hydrated, setHydrated] = useState(false);
+  const routeLabel = resolveRouteLabel(pathname);
 
   useEffect(() => {
     const updateSession = () => {
@@ -74,22 +89,22 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex overflow-x-hidden">
       <aside
-        className={`fixed left-0 top-0 z-30 h-screen w-80 border-r border-[var(--line)] bg-[var(--surface)]/95 px-4 py-5 transition-transform duration-300 ease-in-out ${
+        className={`fixed left-0 top-0 z-30 h-screen w-80 max-w-full overflow-x-hidden overflow-y-auto border-r border-[var(--line)] bg-[var(--surface)]/95 px-4 py-5 transition-transform duration-300 ease-in-out ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <div className="mb-4 flex items-center justify-between">
+        <div className="mb-6 flex items-center justify-between gap-3 px-3">
           <ShellBrand />
           <button
-            aria-label="Close sidebar"
-            className="inline-flex h-10 w-10 items-center justify-center rounded-[var(--radius-md)] border border-[var(--line)] bg-[var(--surface)] text-[var(--text-secondary)] transition hover:bg-[var(--background)] hover:text-[var(--text-primary)] lg:hidden"
+            aria-label="Collapse sidebar"
+            className="inline-flex h-10 w-10 flex-none items-center justify-center rounded-[var(--radius-md)] border border-[var(--line)] bg-[var(--surface)] text-[var(--text-secondary)] transition hover:bg-[var(--background)] hover:text-[var(--text-primary)]"
             onClick={() => setSidebarOpen(false)}
-            title="Close sidebar"
+            title="Collapse sidebar"
             type="button"
           >
-            <X className="h-5 w-5" />
+            <Menu className="h-5 w-5" />
           </button>
         </div>
         <ShellNav pathname={pathname} />
@@ -102,25 +117,44 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         />
       )}
 
-      <div className={`flex-1 flex flex-col ${sidebarOpen ? "lg:ml-80" : ""}`}>
-        <header className="sticky top-0 z-20 border-b border-[var(--line)] bg-[var(--background)]/90 backdrop-blur">
+      <div className={`flex-1 flex flex-col overflow-x-hidden ${sidebarOpen ? "lg:ml-80" : ""}`}>
+        <header
+          className="fixed top-0 z-30 border-b border-[var(--line)] bg-[var(--background)]/90 backdrop-blur"
+          style={{
+            left: sidebarOpen ? "20rem" : 0,
+            width: sidebarOpen ? "calc(100% - 20rem)" : "100%",
+          }}
+        >
           <div className="flex min-h-16 items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
-            <button
-              aria-label="Toggle sidebar"
-              className="inline-flex h-10 w-10 items-center justify-center rounded-[var(--radius-md)] border border-[var(--line)] bg-[var(--surface)] text-[var(--text-secondary)] transition hover:bg-[var(--background)] hover:text-[var(--text-primary)]"
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              title="Toggle sidebar"
-              type="button"
-            >
-              <Menu className="h-5 w-5" />
-            </button>
-            <div className="hidden lg:block">
-              <p className="text-sm font-semibold text-[var(--text-primary)]">
-                FHIR Adapter Admin
-              </p>
-              <p className="text-xs text-[var(--text-secondary)]">
-                Adapter operations console
-              </p>
+            <div className="flex items-center gap-3">
+              {!sidebarOpen && (
+                <button
+                  aria-label="Open sidebar"
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-[var(--radius-md)] border border-[var(--line)] bg-[var(--surface)] text-[var(--text-secondary)] transition hover:bg-[var(--background)] hover:text-[var(--text-primary)]"
+                  onClick={() => setSidebarOpen(true)}
+                  title="Open sidebar"
+                  type="button"
+                >
+                  <Menu className="h-5 w-5" />
+                </button>
+              )}
+              {!sidebarOpen && (
+              <div className="grid h-10 w-10 place-items-center rounded-[var(--radius-base)] border border-[var(--line)] bg-[var(--surface)] p-0.5 shadow-sm">
+                
+                <Image
+                  alt="FHIR Adapter Admin"
+                  className="h-full w-full rounded-[calc(var(--radius-base)-0.125rem)] object-cover"
+                  height={40}
+                  src="/icon.png"
+                  width={40}
+                />
+              </div>
+              )}
+              <div>
+                <p className="text-sm font-semibold text-[var(--text-primary)]">
+                  {routeLabel}
+                </p>
+              </div>
             </div>
             <div className="ml-auto flex items-center gap-3">
               <div className="hidden text-right sm:block">
@@ -137,7 +171,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           </div>
         </header>
 
-        <main className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        <main className="mx-auto w-full max-w-7xl px-4 py-6 pt-20 sm:px-6 lg:px-8">
           {children}
         </main>
       </div>
@@ -147,13 +181,19 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
 function ShellBrand() {
   return (
-    <div className="mb-6 flex items-center gap-3">
-      <div className="grid h-10 w-10 place-items-center rounded-[var(--radius-base)] bg-[var(--primary)] text-white shadow-sm">
-        <ClipboardList className="h-5 w-5" />
+    <div className="flex items-center gap-3">
+      <div className="grid h-10 w-10 place-items-center rounded-[var(--radius-base)] border border-[var(--line)] bg-[var(--surface)] p-0.5 shadow-sm">
+        <Image
+          alt="FHIR Adapter Admin"
+          className="h-full w-full rounded-[calc(var(--radius-base)-0.125rem)] object-cover"
+          height={40}
+          src="/icon.png"
+          width={40}
+        />
       </div>
-      <div>
-        <p className="text-sm font-bold text-[var(--text-primary)]">FHIR Adapter</p>
-        <p className="text-xs text-[var(--text-secondary)]">Admin workspace</p>
+      <div className="text-left">
+        <p className="text-sm font-bold text-[var(--text-primary)]">FHIR Adapter Admin</p>
+        <p className="text-xs text-[var(--text-secondary)]">Adapter operations console</p>
       </div>
     </div>
   );
