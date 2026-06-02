@@ -420,7 +420,10 @@ export async function getInstitutions() {
     return demoInstitutions;
   }
 
-  return await request<Institution[]>("/api/institutions/");
+  return await request<Institution[]>("/api/institutions/", {}, undefined, {
+    base: dataApiBase,
+    preferAdminKey: true,
+  });
 }
 
 export async function createInstitution(input: {
@@ -440,10 +443,15 @@ export async function createInstitution(input: {
     return next;
   }
 
-  return await request<CreatedInstitution>("/api/institutions/", {
-    method: "POST",
-    body: JSON.stringify(input),
-  });
+  return await request<CreatedInstitution>(
+    "/api/institutions/",
+    {
+      method: "POST",
+      body: JSON.stringify(input),
+    },
+    undefined,
+    { base: dataApiBase, preferAdminKey: true },
+  );
 }
 
 export async function revokeInstitution(id: number) {
@@ -454,9 +462,14 @@ export async function revokeInstitution(id: number) {
     return;
   }
 
-  await request<void>(`/api/institutions/${id}/revoke/`, {
-    method: "POST",
-  });
+  await request<void>(
+    `/api/institutions/${id}/revoke/`,
+    {
+      method: "POST",
+    },
+    undefined,
+    { base: dataApiBase, preferAdminKey: true },
+  );
 }
 
 export async function getFailedRecords() {
