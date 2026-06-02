@@ -32,3 +32,13 @@ Set `NEXT_PUBLIC_ADAPTER_OFFLINE=true` or `NEXT_PUBLIC_ADAPTER_API_BASE_URL=offl
 - Failed records
 
 Demo credentials are `admin` and `admin-password`.
+
+## Chart Coverage
+
+The dashboard uses several chart types to make the data easier to scan:
+
+- KPI cards for transaction count, success percentage, failures, and exchanging systems.
+- Area chart for successful and failed transaction trends over time.
+- Donut chart for outcome mix.
+- Bar charts for failure stages and system exchange volume.
+- Ranked lists for FHIR resource types, people profiles, and disease signals.
