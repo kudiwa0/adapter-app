@@ -42,3 +42,14 @@ The dashboard uses several chart types to make the data easier to scan:
 - Donut chart for outcome mix.
 - Bar charts for failure stages and system exchange volume.
 - Ranked lists for FHIR resource types, people profiles, and disease signals.
+
+## Backend Expectations
+
+The dashboard can work with the existing summary metrics endpoint. More complete analytics are available when these endpoints include filter support:
+
+- `GET /api/dashboard/metrics/?created_after=&created_before=&institution=`
+- `GET /api/logs/?created_after=&created_before=&institution=`
+- `GET /api/dead-letter/`
+- `GET /api/institutions/`
+
+Successful logs should include `institution`, `institution_name`, `created_at`, and optional FHIR details such as `resource_type` or `raw_payload`.
