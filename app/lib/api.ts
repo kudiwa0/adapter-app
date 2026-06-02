@@ -17,6 +17,11 @@ const apiBase = (
   process.env.NEXT_PUBLIC_ADAPTER_API_BASE_URL ??
   "https://fhir-adapater.onrender.com/api"
 ).replace(/\/$/, "");
+const dataApiBase = (
+  process.env.NEXT_PUBLIC_ADAPTER_DATA_API_BASE_URL ??
+  process.env.NEXT_PUBLIC_ADAPTER_API_BASE_URL ??
+  "https://fhir-adapater.onrender.com/api"
+).replace(/\/$/, "");
 const offlineMode =
   process.env.NEXT_PUBLIC_ADAPTER_OFFLINE === "true" ||
   process.env.NEXT_PUBLIC_ADAPTER_API_BASE_URL === "offline";
