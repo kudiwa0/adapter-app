@@ -20,3 +20,15 @@ The dashboard supports preset time windows for quick operational reviews:
 - All time
 
 System filtering is driven by the registered institution list. When a system is selected, metrics, failures, logs, and derived payload signals are scoped to that institution.
+
+## Offline Demo Mode
+
+Set `NEXT_PUBLIC_ADAPTER_OFFLINE=true` or `NEXT_PUBLIC_ADAPTER_API_BASE_URL=offline` when the backend is unavailable. In offline mode, the API client returns local demo data for:
+
+- Admin login
+- Dashboard metrics
+- Institutions
+- Successful processing logs
+- Failed records
+
+Demo credentials are `admin` and `admin-password`.
