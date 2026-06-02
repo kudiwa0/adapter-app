@@ -44,6 +44,7 @@ import { EmptyState, ErrorBanner, inputClass, PageHeader, StatusBadge } from "./
 
 type TimePreset = "today" | "yesterday" | "last7" | "last30" | "lastMonth" | "all";
 type ChartRow = { name: string; value: number; fill?: string };
+type SignalTheme = "resource" | "profile" | "disease";
 
 const palette = {
   received: "#2563eb",
@@ -321,6 +322,52 @@ function NoChartData({ label = "No analytics data for this filter." }: { label?:
       {label}
     </div>
   );
+}
+
+function signalColor(name: string, theme: SignalTheme) {
+  const normalized = name.toLowerCase();
+
+  if (theme === "resource") {
+    if (normalized.includes("patient")) return "#2563eb";
+    if (normalized.includes("bundle")) return "#7c3aed";
+    if (normalized.includes("condition")) return "#dc2626";
+    if (normalized.includes("observation")) return "#0891b2";
+    if (normalized.includes("encounter")) return "#16a34a";
+  }
+
+  if (theme === "profile") {
+    if (normalized.includes("female")) return "#db2777";
+    if (normalized.includes("male")) return "#2563eb";
+    if (normalized.includes("unknown")) return "#64748b";
+    if (normalized.includes("0-17")) return "#f59e0b";
+  }
+
+  if (normalized.includes("malaria")) return "#dc2626";
+  if (normalized.includes("hypertension")) return "#7c3aed";
+  if (normalized.includes("diabetes")) return "#0891b2";
+  if (normalized.includes("asthma")) return "#16a34a";
+  if (normalized.includes("tuberculosis")) return "#b45309";
+  if (normalized.includes("cholera")) return "#0d9488";
+  if (normalized.includes("hiv")) return "#e11d48";
+
+  return theme === "resource" ? "#475569" : theme === "profile" ? "#4a1d5f" : "#dc2626";
+}
+
+function signalInitial(name: string) {
+  const parts = name
+    .replace(/[^a-zA-Z0-9\s+-]/g, " ")
+    .split(/\s+/)
+    .filter(Boolean);
+
+  if (!parts.length) {
+    return "?";
+  }
+
+  if (parts[0].length <= 2 && parts[1]) {
+    return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+  }
+
+  return parts[0].slice(0, 2).toUpperCase();
 }
 
 export function DashboardView() {
@@ -795,7 +842,7 @@ export function DashboardView() {
               title="No resource signals"
             />
           ) : (
-            <RankedList data={resourceData} icon={BarChart3} />
+            <SignalList data={resourceData} icon={BarChart3} theme="resource" />
           )}
         </ChartPanel>
 
@@ -809,7 +856,7 @@ export function DashboardView() {
               title="No profile signals"
             />
           ) : (
-            <RankedList data={profileData} icon={Users} />
+            <SignalList data={profileData} icon={Users} theme="profile" />
           )}
         </ChartPanel>
 
@@ -823,7 +870,7 @@ export function DashboardView() {
               title="No disease signals"
             />
           ) : (
-            <RankedList data={diseaseData} icon={HeartPulse} />
+            <SignalList data={diseaseData} icon={HeartPulse} theme="disease" />
           )}
         </ChartPanel>
       </div>
@@ -831,36 +878,55 @@ export function DashboardView() {
   );
 }
 
-function RankedList({
+function SignalList({
   data,
   icon: Icon,
+  theme,
 }: {
   data: ChartRow[];
   icon: typeof Activity;
+  theme: SignalTheme;
 }) {
   const max = Math.max(...data.map((item) => item.value), 1);
 
   return (
-    <div className="grid gap-3">
-      {data.map((item) => (
-        <div key={item.name}>
-          <div className="mb-1.5 flex items-center justify-between gap-3 text-sm">
-            <span className="inline-flex min-w-0 items-center gap-2 font-medium text-[var(--text-primary)]">
-              <Icon className="h-4 w-4 shrink-0 text-[var(--primary)]" />
-              <span className="truncate">{item.name}</span>
+    <div className="space-y-1.5">
+      <div className="mb-2 flex items-center justify-between gap-3 px-2 text-xs font-semibold uppercase text-[var(--text-muted)]">
+        <span>Signal</span>
+        <span>Count</span>
+      </div>
+      {data.map((item, index) => {
+        const color = item.fill ?? signalColor(item.name, theme);
+        const width = `${Math.max(8, (item.value / max) * 100)}%`;
+
+        return (
+          <div
+            className="group relative grid min-h-10 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 overflow-hidden rounded-[var(--radius-md)] px-2.5 py-1.5 transition"
+            key={item.name}
+          >
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-y-0 left-0 rounded-[var(--radius-md)] bg-[color-mix(in_srgb,var(--foreground)_7%,transparent)] transition-[width] duration-300 ease-out group-hover:bg-[color-mix(in_srgb,var(--foreground)_9%,transparent)]"
+              style={{ width }}
+            />
+            <span className="relative z-10 inline-flex min-w-0 items-center gap-2 text-sm font-medium text-[var(--text-primary)]">
+              <span
+                className="grid h-7 w-7 shrink-0 place-items-center rounded-[var(--radius-sm)] text-[10px] font-bold"
+                style={{
+                  backgroundColor: `color-mix(in srgb, ${color} 12%, white)`,
+                  color,
+                }}
+              >
+                {index < 3 ? <Icon className="h-4 w-4" /> : signalInitial(item.name)}
+              </span>
+              <span className="min-w-0 truncate">{item.name}</span>
             </span>
-            <span className="font-semibold tabular-nums text-[var(--text-primary)]">
+            <span className="relative z-10 justify-self-end text-sm font-semibold tabular-nums text-[var(--text-secondary)]">
               {formatNumber(item.value)}
             </span>
           </div>
-          <div className="h-2 rounded-full bg-[var(--background)]">
-            <div
-              className="h-2 rounded-full bg-[var(--primary)]"
-              style={{ width: `${Math.max(8, (item.value / max) * 100)}%` }}
-            />
-          </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
