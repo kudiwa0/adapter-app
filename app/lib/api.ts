@@ -515,13 +515,18 @@ export async function resolveFailedRecord(id: number, resolution_notes: string) 
     return { ...updated, resolved: true, resolution_notes };
   }
 
-  const record = await request<ApiFailedRecord>(`/api/dead-letter/${id}/`, {
-    method: "PATCH",
-    body: JSON.stringify({
-      resolved: true,
-      resolution_notes,
-    }),
-  });
+  const record = await request<ApiFailedRecord>(
+    `/api/dead-letter/${id}/`,
+    {
+      method: "PATCH",
+      body: JSON.stringify({
+        resolved: true,
+        resolution_notes,
+      }),
+    },
+    undefined,
+    { base: dataApiBase, preferAdminKey: true },
+  );
 
   return normalizeFailedRecord(record);
 }
