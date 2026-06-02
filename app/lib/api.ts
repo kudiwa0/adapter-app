@@ -477,7 +477,10 @@ export async function getFailedRecords() {
     return demoFailedRecords;
   }
 
-  const records = await request<ApiFailedRecord[]>("/api/dead-letter/");
+  const records = await request<ApiFailedRecord[]>("/api/dead-letter/", {}, undefined, {
+    base: dataApiBase,
+    preferAdminKey: true,
+  });
   return records.map(normalizeFailedRecord);
 }
 
@@ -488,6 +491,9 @@ export async function getProcessingLogs(filters: DashboardMetricFilters = {}) {
 
   const records = await request<ApiProcessingLog[]>(
     `/api/logs/${queryString(filters)}`,
+    {},
+    undefined,
+    { base: dataApiBase, preferAdminKey: true },
   );
   return records.map(normalizeProcessingLog);
 }
