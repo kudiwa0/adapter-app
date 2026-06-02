@@ -21,6 +21,24 @@ export type DashboardMetrics = {
   success_rate: number;
 };
 
+export type DashboardMetricFilters = {
+  created_after?: string;
+  created_before?: string;
+  institution?: number;
+};
+
+export type ProcessingLog = {
+  id: number;
+  institution: number;
+  institution_name: string;
+  format_received?: string;
+  resource_type?: string;
+  time_taken_ms?: number;
+  golden_record_id?: string;
+  raw_payload?: Record<string, unknown>;
+  created_at: string;
+};
+
 export type Institution = {
   id: number;
   name: string;
