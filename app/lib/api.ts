@@ -409,6 +409,9 @@ export async function getMetrics(filters: DashboardMetricFilters = {}) {
 
   return await request<DashboardMetrics>(
     `/api/dashboard/metrics/${queryString(filters)}`,
+    {},
+    undefined,
+    { base: dataApiBase, preferAdminKey: true },
   );
 }
 
