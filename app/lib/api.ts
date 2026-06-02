@@ -22,6 +22,7 @@ const dataApiBase = (
   process.env.NEXT_PUBLIC_ADAPTER_API_BASE_URL ??
   "https://fhir-adapater.onrender.com/api"
 ).replace(/\/$/, "");
+const adminKey = process.env.NEXT_PUBLIC_ADAPTER_ADMIN_KEY;
 const offlineMode =
   process.env.NEXT_PUBLIC_ADAPTER_OFFLINE === "true" ||
   process.env.NEXT_PUBLIC_ADAPTER_API_BASE_URL === "offline";
@@ -47,7 +48,7 @@ async function request<T>(
   path: string,
   init: RequestInit = {},
   authToken?: string,
-  options: { base?: string } = {},
+  options: { base?: string; preferAdminKey?: boolean } = {},
 ) {
   const headers = new Headers(init.headers);
   headers.set("Accept", "application/json");
@@ -56,7 +57,9 @@ async function request<T>(
     headers.set("Content-Type", "application/json");
   }
 
-  if (authToken) {
+  if (options.preferAdminKey && adminKey) {
+    headers.set("Authorization", `Admin-Key ${adminKey}`);
+  } else if (authToken) {
     headers.set("Authorization", `Token ${authToken}`);
   } else {
     Object.entries(authHeaders()).forEach(([key, value]) => {
