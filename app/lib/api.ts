@@ -38,15 +38,16 @@ class AdapterApiError extends Error {
   }
 }
 
-function url(path: string) {
+function url(path: string, base = apiBase) {
   const normalizedPath = path.replace(/^\/api/, "");
-  return `${apiBase}${normalizedPath}`;
+  return `${base}${normalizedPath}`;
 }
 
 async function request<T>(
   path: string,
   init: RequestInit = {},
-  authToken?: string
+  authToken?: string,
+  options: { base?: string } = {},
 ) {
   const headers = new Headers(init.headers);
   headers.set("Accept", "application/json");
@@ -63,7 +64,7 @@ async function request<T>(
     });
   }
 
-  const response = await fetch(url(path), {
+  const response = await fetch(url(path, options.base), {
     ...init,
     credentials: "include",
     headers,
