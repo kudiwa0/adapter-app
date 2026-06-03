@@ -21,6 +21,39 @@ export type DashboardMetrics = {
   success_rate: number;
 };
 
+export type ChartRow = {
+  name: string;
+  value: number;
+};
+
+export type TrendRow = {
+  date: string;
+  successful: number;
+  failed: number;
+};
+
+export type HistoryQueryMetrics = {
+  total: number;
+  successful: number;
+  failed: number;
+  success_rate: number;
+};
+
+export type AnalyticsSummary = {
+  metrics: DashboardMetrics;
+  transaction_trend: TrendRow[];
+  failure_stages: ChartRow[];
+  system_exchange_volume: ChartRow[];
+  resource_types: ChartRow[];
+  people_profiles: ChartRow[];
+  disease_signals: ChartRow[];
+  history_query_metrics?: HistoryQueryMetrics;
+  history_query_trend?: TrendRow[];
+  history_query_hospitals?: ChartRow[];
+  history_query_identifiers?: ChartRow[];
+  history_query_statuses?: ChartRow[];
+};
+
 export type DashboardMetricFilters = {
   created_after?: string;
   created_before?: string;
