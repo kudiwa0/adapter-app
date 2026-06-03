@@ -9,7 +9,6 @@ import {
   Database,
   Filter,
   HeartPulse,
-  Search,
   Users,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -47,7 +46,7 @@ import { EmptyState, ErrorBanner, inputClass, PageHeader, StatusBadge } from "./
 
 type TimePreset = "today" | "yesterday" | "last7" | "last30" | "lastMonth" | "all";
 type ChartRow = { name: string; value: number; fill?: string };
-type SignalTheme = "resource" | "profile" | "disease" | "history";
+type SignalTheme = "resource" | "profile" | "disease";
 
 const palette = {
   received: "#2563eb",
@@ -352,8 +351,6 @@ function signalColor(name: string, theme: SignalTheme) {
   if (normalized.includes("tuberculosis")) return "#b45309";
   if (normalized.includes("cholera")) return "#0d9488";
   if (normalized.includes("hiv")) return "#e11d48";
-  if (normalized.includes("hosp")) return "#0891b2";
-  if (normalized.includes("sim")) return "#4a1d5f";
 
   return theme === "resource" ? "#475569" : theme === "profile" ? "#4a1d5f" : "#dc2626";
 }
@@ -577,19 +574,6 @@ export function DashboardView() {
     (record) => record.name,
     8,
   );
-  const historyMetrics = summary?.history_query_metrics ?? {
-    total: 0,
-    successful: 0,
-    failed: 0,
-    success_rate: 0,
-  };
-  const historyTrendData = (summary?.history_query_trend ?? []).map((row) => ({
-    name: dateKey(row.date),
-    successful: row.successful,
-    failed: row.failed,
-  }));
-  const historyHospitalData = summary?.history_query_hospitals ?? [];
-  const historyIdentifierData = summary?.history_query_identifiers ?? [];
 
   return (
     <>
@@ -903,105 +887,6 @@ export function DashboardView() {
             />
           ) : (
             <SignalList data={diseaseData} icon={HeartPulse} theme="disease" />
-          )}
-        </ChartPanel>
-      </div>
-
-      <div className="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1.2fr)_minmax(280px,0.8fr)]">
-        <ChartPanel
-          description="Successful and failed National Medical History lookups across the selected period."
-          title="History query trend"
-        >
-          <div className="h-72">
-            {historyTrendData.length === 0 ? (
-              <NoChartData label="No history queries for this filter." />
-            ) : (
-              <ResponsiveContainer height="100%" width="100%">
-                <AreaChart data={historyTrendData} margin={{ bottom: 0, left: -18, right: 8, top: 8 }}>
-                  <CartesianGrid stroke="rgba(148,163,184,0.18)" vertical={false} />
-                  <XAxis
-                    axisLine={false}
-                    dataKey="name"
-                    tick={{ fill: "var(--text-secondary)", fontSize: 12 }}
-                    tickLine={false}
-                  />
-                  <YAxis
-                    allowDecimals={false}
-                    axisLine={false}
-                    tick={{ fill: "var(--text-secondary)", fontSize: 12 }}
-                    tickLine={false}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "var(--surface)",
-                      borderColor: "var(--line)",
-                      borderRadius: "8px",
-                    }}
-                  />
-                  <Area
-                    dataKey="successful"
-                    fill="rgba(8,145,178,0.14)"
-                    stroke={palette.cyan}
-                    strokeWidth={2}
-                    type="monotone"
-                  />
-                  <Area
-                    dataKey="failed"
-                    fill="rgba(220,38,38,0.12)"
-                    stroke={palette.failed}
-                    strokeWidth={2}
-                    type="monotone"
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            )}
-          </div>
-        </ChartPanel>
-
-        <div className="grid gap-4">
-          <AnalyticsCard
-            detail={`${formatNumber(historyMetrics.successful)} successful and ${formatNumber(historyMetrics.failed)} failed history lookups.`}
-            icon={Search}
-            label="History lookups"
-            tone={historyMetrics.failed > 0 ? "warning" : "success"}
-            value={loading ? "-" : formatNumber(historyMetrics.total)}
-          />
-          <AnalyticsCard
-            detail="Percentage of history lookups that returned through MPI successfully."
-            icon={Activity}
-            label="History success"
-            tone={statusTone(historyMetrics.success_rate)}
-            value={loading ? "-" : formatPercent(historyMetrics.success_rate)}
-          />
-        </div>
-      </div>
-
-      <div className="mt-5 grid gap-5 xl:grid-cols-2">
-        <ChartPanel
-          description="Hospitals requesting National Medical History views."
-          title="History querying hospitals"
-        >
-          {historyHospitalData.length === 0 ? (
-            <EmptyState
-              description="Hospital history lookup volume appears once the module queries patient history."
-              title="No history lookup signals"
-            />
-          ) : (
-            <SignalList data={historyHospitalData} icon={Building2} theme="history" />
-          )}
-        </ChartPanel>
-
-        <ChartPanel
-          description="Patient identifiers most often searched by the history flow."
-          title="Searched patient identifiers"
-        >
-          {historyIdentifierData.length === 0 ? (
-            <EmptyState
-              description="Searched identifiers appear once hospitals query shared patient history."
-              title="No identifier signals"
-            />
-          ) : (
-            <SignalList data={historyIdentifierData} icon={Search} theme="history" />
           )}
         </ChartPanel>
       </div>
