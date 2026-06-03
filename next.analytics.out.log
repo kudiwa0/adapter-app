@@ -1,0 +1,38 @@
+
+> adapter-app@0.1.0 dev
+> next dev -H 127.0.0.1 -p 3000
+
+▲ Next.js 16.2.6 (Turbopack)
+- Local:         http://127.0.0.1:3000
+- Network:       http://127.0.0.1:3000
+- Environments: .env.local
+✓ Ready in 3.3s
+
+ GET /dashboard 200 in 7.4s (next.js: 4.8s, application-code: 2.6s)
+ GET /dashboard 200 in 318ms (next.js: 28ms, application-code: 290ms)
+ GET /dashboard 200 in 237ms (next.js: 16ms, application-code: 222ms)
+✓ Compiled in 271ms
+ GET /dashboard 200 in 1150ms (next.js: 506ms, application-code: 645ms)
+ GET /dashboard 200 in 178ms (next.js: 15ms, application-code: 162ms)
+✓ Compiled in 340ms
+ GET /dashboard 200 in 926ms (next.js: 374ms, application-code: 552ms)
+ GET /dashboard 200 in 424ms (next.js: 42ms, application-code: 383ms)
+✓ Compiled in 261ms
+ GET /dashboard 200 in 1077ms (next.js: 419ms, application-code: 658ms)
+ GET /dashboard 200 in 299ms (next.js: 14ms, application-code: 286ms)
+✓ Compiled in 444ms
+ GET /dashboard 200 in 1227ms (next.js: 662ms, application-code: 564ms)
+ GET /dashboard 200 in 267ms (next.js: 20ms, application-code: 247ms)
+✓ Compiled in 187ms
+ GET /dashboard 200 in 1198ms (next.js: 685ms, application-code: 512ms)
+ GET /dashboard 200 in 181ms (next.js: 13ms, application-code: 167ms)
+✓ Compiled in 240ms
+ GET /dashboard 200 in 702ms (next.js: 334ms, application-code: 368ms)
+ GET /dashboard 200 in 192ms (next.js: 21ms, application-code: 171ms)
+✓ Compiled in 310ms
+ GET /dashboard 200 in 549ms (next.js: 350ms, application-code: 198ms)
+ GET /dashboard 200 in 156ms (next.js: 18ms, application-code: 138ms)
+✓ Compiled in 264ms
+ GET /dashboard 200 in 875ms (next.js: 498ms, application-code: 377ms)
+ GET /dashboard 200 in 139ms (next.js: 8ms, application-code: 131ms)
+ GET /dashboard 200 in 968ms (next.js: 8ms, application-code: 960ms)
