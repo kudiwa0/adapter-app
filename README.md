@@ -395,4 +395,18 @@ The demo login is:
 username: admin
 password: admin-password
 ```
-change to redeploutc
+
+For deployed demos where the adapter API may be unreachable, enable bundled simulator-style analytics fallback:
+
+```bash
+NEXT_PUBLIC_ADAPTER_USE_DEMO_FALLBACK=true
+```
+
+For a fully offline deployed demo, use:
+
+```bash
+NEXT_PUBLIC_ADAPTER_OFFLINE=true
+NEXT_PUBLIC_ADAPTER_API_BASE_URL=offline
+```
+
+The bundled demo data lives in `app/lib/demo-analytics.ts` and includes intake analytics plus National Medical History lookup analytics.
