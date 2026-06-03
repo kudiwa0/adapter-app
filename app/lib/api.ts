@@ -2,6 +2,7 @@
 
 import { authHeaders } from "./auth";
 import type {
+  AnalyticsSummary,
   ApiErrorPayload,
   AuthSession,
   AdminUser,
@@ -12,6 +13,12 @@ import type {
   Institution,
   ProcessingLog,
 } from "./types";
+import {
+  demoAnalyticsSummary,
+  demoFailedRecords,
+  demoInstitutions,
+  demoLogs,
+} from "./demo-analytics";
 
 const apiBase = (
   process.env.NEXT_PUBLIC_ADAPTER_API_BASE_URL ??
@@ -185,150 +192,8 @@ const demoUser: AdminUser = {
   is_superuser: true,
 };
 
-let demoInstitutions: Institution[] = [
-  {
-    id: 1,
-    name: "OpenMRS General Hospital",
-    is_active: true,
-    created_at: "2026-05-28T08:00:00Z",
-  },
-  {
-    id: 2,
-    name: "District Lab Exchange",
-    is_active: true,
-    created_at: "2026-05-29T10:20:00Z",
-  },
-  {
-    id: 3,
-    name: "Community Clinic Network",
-    is_active: false,
-    created_at: "2026-05-30T13:45:00Z",
-  },
-];
-
-const demoLogs: ProcessingLog[] = [
-  {
-    id: 101,
-    institution: 1,
-    institution_name: "OpenMRS General Hospital",
-    format_received: "fhir",
-    resource_type: "Bundle",
-    time_taken_ms: 430,
-    golden_record_id: "GR-1001",
-    created_at: "2026-06-02T07:10:00Z",
-    raw_payload: demoBundle("female", "1986-03-18", "Hypertension"),
-  },
-  {
-    id: 102,
-    institution: 2,
-    institution_name: "District Lab Exchange",
-    format_received: "fhir",
-    resource_type: "Observation",
-    time_taken_ms: 315,
-    golden_record_id: "GR-1002",
-    created_at: "2026-06-02T08:35:00Z",
-    raw_payload: demoBundle("male", "1972-11-01", "Diabetes mellitus"),
-  },
-  {
-    id: 103,
-    institution: 1,
-    institution_name: "OpenMRS General Hospital",
-    format_received: "fhir",
-    resource_type: "Bundle",
-    time_taken_ms: 522,
-    golden_record_id: "GR-1003",
-    created_at: "2026-06-01T15:40:00Z",
-    raw_payload: demoBundle("female", "2014-09-04", "Asthma"),
-  },
-  {
-    id: 104,
-    institution: 1,
-    institution_name: "OpenMRS General Hospital",
-    format_received: "fhir",
-    resource_type: "Bundle",
-    time_taken_ms: 280,
-    golden_record_id: "GR-1004",
-    created_at: "2026-05-22T12:15:00Z",
-    raw_payload: demoBundle("male", "1994-01-27", "Tuberculosis"),
-  },
-  {
-    id: 105,
-    institution: 2,
-    institution_name: "District Lab Exchange",
-    format_received: "fhir",
-    resource_type: "Bundle",
-    time_taken_ms: 388,
-    golden_record_id: "GR-1005",
-    created_at: "2026-05-08T09:10:00Z",
-    raw_payload: demoBundle("female", "1958-07-12", "HIV infection"),
-  },
-];
-
-let demoFailedRecords: FailedRecord[] = [
-  {
-    id: 201,
-    institution: 2,
-    institution_name: "District Lab Exchange",
-    failure_stage: "validation",
-    error_code: "VALIDATION",
-    message: "FHIR payload is missing a required patient identifier.",
-    raw_payload: demoBundle("male", "1989-02-10", "Malaria"),
-    error_details: { field: "Patient.identifier", severity: "error" },
-    resolved: false,
-    created_at: "2026-06-02T09:25:00Z",
-  },
-  {
-    id: 202,
-    institution: 1,
-    institution_name: "OpenMRS General Hospital",
-    failure_stage: "forwarding",
-    error_code: "FORWARDING",
-    message: "Golden record service timed out before accepting the transaction.",
-    raw_payload: demoBundle("female", "1968-12-05", "Hypertension"),
-    error_details: { timeout_ms: 30000 },
-    resolved: false,
-    created_at: "2026-06-01T11:05:00Z",
-  },
-  {
-    id: 203,
-    institution: 3,
-    institution_name: "Community Clinic Network",
-    failure_stage: "normalization",
-    error_code: "NORMALIZATION",
-    message: "Condition coding could not be mapped to the configured profile.",
-    raw_payload: demoBundle("unknown", "2001-05-19", "Cholera"),
-    error_details: { code_system: "local-clinic-codes" },
-    resolved: true,
-    resolution_notes: "Mapped manually and replayed.",
-    created_at: "2026-05-15T14:30:00Z",
-  },
-];
-
-function demoBundle(gender: string, birthDate: string, condition: string) {
-  return {
-    resourceType: "Bundle",
-    type: "transaction",
-    entry: [
-      {
-        resource: {
-          resourceType: "Patient",
-          gender,
-          birthDate,
-          identifier: [{ system: "https://pulsepeak.local/mrn", value: "DEMO" }],
-        },
-      },
-      {
-        resource: {
-          resourceType: "Condition",
-          code: {
-            text: condition,
-            coding: [{ system: "http://snomed.info/sct", display: condition }],
-          },
-        },
-      },
-    ],
-  };
-}
+let offlineInstitutions = [...demoInstitutions];
+let offlineFailedRecords = [...demoFailedRecords];
 
 function matchesFilters(
   record: { institution: number; created_at: string },
@@ -396,7 +261,7 @@ export async function logout() {
 export async function getMetrics(filters: DashboardMetricFilters = {}) {
   if (offlineMode) {
     const successful = demoLogs.filter((record) => matchesFilters(record, filters)).length;
-    const failed = demoFailedRecords.filter((record) => matchesFilters(record, filters)).length;
+    const failed = offlineFailedRecords.filter((record) => matchesFilters(record, filters)).length;
     const received = successful + failed;
 
     return {
@@ -417,7 +282,7 @@ export async function getMetrics(filters: DashboardMetricFilters = {}) {
 
 export async function getInstitutions() {
   if (offlineMode) {
-    return demoInstitutions;
+    return offlineInstitutions;
   }
 
   return await request<Institution[]>("/api/institutions/", {}, undefined, {
@@ -432,14 +297,14 @@ export async function createInstitution(input: {
 }) {
   if (offlineMode) {
     const next: CreatedInstitution = {
-      id: Math.max(...demoInstitutions.map((institution) => institution.id)) + 1,
+      id: Math.max(...offlineInstitutions.map((institution) => institution.id)) + 1,
       name: input.name,
       is_active: input.is_active,
       created_at: new Date().toISOString(),
       api_key: `demo_${crypto.randomUUID().replaceAll("-", "").slice(0, 24)}`,
     };
 
-    demoInstitutions = [next, ...demoInstitutions];
+    offlineInstitutions = [next, ...offlineInstitutions];
     return next;
   }
 
@@ -456,7 +321,7 @@ export async function createInstitution(input: {
 
 export async function revokeInstitution(id: number) {
   if (offlineMode) {
-    demoInstitutions = demoInstitutions.map((institution) =>
+    offlineInstitutions = offlineInstitutions.map((institution) =>
       institution.id === id ? { ...institution, is_active: false } : institution,
     );
     return;
@@ -474,7 +339,7 @@ export async function revokeInstitution(id: number) {
 
 export async function getFailedRecords() {
   if (offlineMode) {
-    return demoFailedRecords;
+    return offlineFailedRecords;
   }
 
   const records = await request<ApiFailedRecord[]>("/api/dead-letter/", {}, undefined, {
@@ -500,13 +365,13 @@ export async function getProcessingLogs(filters: DashboardMetricFilters = {}) {
 
 export async function resolveFailedRecord(id: number, resolution_notes: string) {
   if (offlineMode) {
-    const updated = demoFailedRecords.find((record) => record.id === id);
+    const updated = offlineFailedRecords.find((record) => record.id === id);
 
     if (!updated) {
       throw new AdapterApiError(404, { message: "Demo failed record not found" });
     }
 
-    demoFailedRecords = demoFailedRecords.map((record) =>
+    offlineFailedRecords = offlineFailedRecords.map((record) =>
       record.id === id
         ? { ...record, resolved: true, resolution_notes }
         : record,
@@ -529,4 +394,24 @@ export async function resolveFailedRecord(id: number, resolution_notes: string) 
   );
 
   return normalizeFailedRecord(record);
+}
+
+export async function getAnalyticsSummary(filters: DashboardMetricFilters = {}) {
+  if (offlineMode) {
+    return demoAnalyticsSummary;
+  }
+
+  try {
+    return await request<AnalyticsSummary>(
+      `/api/analytics/summary/${queryString(filters)}`,
+      {},
+      undefined,
+      { base: dataApiBase, preferAdminKey: true },
+    );
+  } catch (error) {
+    if (process.env.NEXT_PUBLIC_ADAPTER_USE_DEMO_FALLBACK === "true") {
+      return demoAnalyticsSummary;
+    }
+    throw error;
+  }
 }
